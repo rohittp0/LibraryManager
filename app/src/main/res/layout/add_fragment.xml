@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingTop="3dp"
+        tools:context=".Add">
+
+        <RelativeLayout
+            android:id="@+id/cover_photo_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="30dp"
+            android:layout_marginRight="5dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/add_select_cover_photo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:shadowColor="@color/white"
+                android:text="@string/add_cover_image_button_text"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                app:backgroundTint="@color/colorPrimaryLight"
+                app:cornerRadius="3dp" />
+
+            <androidx.core.widget.NestedScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/add_select_cover_photo"
+                android:layout_centerHorizontal="true"
+                android:scrollbarAlwaysDrawVerticalTrack="true">
+
+                <ImageView
+                    android:id="@+id/add_book_cover_photo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/square"
+                    android:clickable="true"
+                    android:contentDescription="@string/NULL"
+                    android:focusable="true"
+                    android:foregroundGravity="center"
+                    android:hapticFeedbackEnabled="true"
+                    android:padding="0dp" />
+            </androidx.core.widget.NestedScrollView>
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/text_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/cover_photo_layout"
+            android:layout_margin="5dp"
+            android:orientation="vertical"
+            android:padding="5dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:layout_marginTop="15dp"
+                android:padding="0dp"
+                android:theme="@style/TextInputLayoutTextStyle">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/add_book_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:autofillHints="Book Name"
+                    android:background="@drawable/add_edit_text_border"
+                    android:hint="@string/book_name_hint"
+                    android:inputType="text"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="0dp"
+                    android:textColor="@color/white"
+                    android:textCursorDrawable="@drawable/edit_text_cursor"
+                    android:textSize="15sp"
+                    tools:targetApi="o" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:layout_marginTop="15dp"
+                android:padding="0dp"
+                android:theme="@style/TextInputLayoutTextStyle">
+
+                <AutoCompleteTextView
+                    android:id="@+id/add_book_author"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_alignParentTop="true"
+                    android:autofillHints="Author Name"
+                    android:background="@drawable/add_edit_text_border"
+                    android:hint="@string/author_name_hint"
+                    android:inputType="textPersonName"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="0dp"
+                    android:textColor="@color/white"
+                    android:textCursorDrawable="@drawable/edit_text_cursor"
+                    android:textSize="15sp"
+                    tools:targetApi="o" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:layout_marginTop="15dp"
+                android:padding="0dp"
+                android:theme="@style/TextInputLayoutTextStyle">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/add_book_price"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:autofillHints="Price"
+                    android:background="@drawable/add_edit_text_border"
+                    android:hint="@string/price_hint"
+                    android:inputType="numberDecimal"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="0dp"
+                    android:textColor="@color/white"
+                    android:textCursorDrawable="@drawable/edit_text_cursor"
+                    android:textSize="15sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:layout_marginTop="15dp"
+                android:padding="0dp"
+                android:theme="@style/TextInputLayoutTextStyle">
+
+                <AutoCompleteTextView
+                    android:id="@+id/add_book_category"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:autofillHints="Category"
+                    android:background="@drawable/add_edit_text_border"
+                    android:hint="@string/category_hint"
+                    android:inputType="textAutoComplete"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="0dp"
+                    android:textColor="@color/white"
+                    android:textCursorDrawable="@drawable/edit_text_cursor"
+                    android:textSize="15sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:layout_below="@id/text_layout"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="25dp"
+            android:background="@color/colorPrimaryLight"
+            android:text="@string/add_button_text"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            app:backgroundTint="@color/colorPrimaryLight"
+            app:cornerRadius="10dp" />
+    </RelativeLayout>
+</androidx.core.widget.NestedScrollView>

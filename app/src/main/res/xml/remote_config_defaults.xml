@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<defaultsMap>
+    <key>home_column_count</key>
+    <value>
+        {
+        "sizes": [
+        {
+        "name": "small",
+        "widthMin": 2.48,
+        "widthMax": 3.73,
+        "count": 2
+        },
+        {
+        "name": "medium",
+        "widthMin": 3.73,
+        "widthMax": 4.97,
+        "count": 3
+        },
+        {
+        "name": "large",
+        "widthMin": 4.97,
+        "widthMax": 6.2,
+        "count": 4
+        },
+        {
+        "name": "extraLarge",
+        "widthMin": 6.2,
+        "widthMax": 7.44,
+        "count": 5
+        }
+        ]
+        }
+    </value>
+</defaultsMap>
