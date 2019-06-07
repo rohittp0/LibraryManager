@@ -22,7 +22,7 @@ import java.util.List;
 
 import static java.util.Objects.requireNonNull;
 
-class CameraActivity extends AppCompatActivity implements OnSuccessListener<List<FirebaseVisionObject>>, OnFailureListener
+public class CameraActivity extends AppCompatActivity implements OnSuccessListener<List<FirebaseVisionObject>>, OnFailureListener
 {
     private final FirebaseVisionObjectDetector objectDetector =
             FirebaseVision.getInstance().getOnDeviceObjectDetector(new FirebaseVisionObjectDetectorOptions.Builder()
