@@ -16,7 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 import java.util.List;
 
-class Home extends Fragment
+public class Home extends Fragment
 {
 
     private static final float BOOK_SIZE = 130;
@@ -44,7 +44,7 @@ class Home extends Fragment
         recyclerView = view.findViewById(R.id.home_recycler_view);
         if (recyclerView.getAdapter() == null)
             adapter = new RecyclerViewAdapter(getContext(), listBooks);
-            recyclerView.setAdapter(adapter);
+        recyclerView.setAdapter(adapter);
         if (recyclerView.getLayoutManager() == null)
             recyclerView.setLayoutManager(new GridLayoutManager(getActivity(), getCount(view)));
         return view;
@@ -71,7 +71,7 @@ class Home extends Fragment
                         , getResources().getDisplayMetrics()));
         System.out.println("Number of columns = " + cols);
 
-        return cols >= 1 ? cols : 1;
+        return cols > 0 ? cols < listBooks.size() ? cols : listBooks.size() : 1;
     }
 
     void setData(ArrayList<Book> books)

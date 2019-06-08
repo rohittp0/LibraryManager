@@ -68,7 +68,8 @@
                 android:layout_height="70dp"
                 android:layout_marginTop="15dp"
                 android:padding="0dp"
-                android:theme="@style/TextInputLayoutTextStyle">
+                android:theme="@style/TextInputLayoutTextStyle"
+                app:hintTextAppearance="@style/TextAppearance.AppCompat.Body1">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/add_book_name"
@@ -92,7 +93,8 @@
                 android:layout_height="70dp"
                 android:layout_marginTop="15dp"
                 android:padding="0dp"
-                android:theme="@style/TextInputLayoutTextStyle">
+                android:theme="@style/TextInputLayoutTextStyle"
+                app:hintTextAppearance="@style/TextAppearance.AppCompat.Body1">
 
                 <AutoCompleteTextView
                     android:id="@+id/add_book_author"
@@ -116,7 +118,8 @@
                 android:layout_height="70dp"
                 android:layout_marginTop="15dp"
                 android:padding="0dp"
-                android:theme="@style/TextInputLayoutTextStyle">
+                android:theme="@style/TextInputLayoutTextStyle"
+                app:hintTextAppearance="@style/TextAppearance.AppCompat.Body1">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/add_book_price"
@@ -138,7 +141,8 @@
                 android:layout_height="70dp"
                 android:layout_marginTop="15dp"
                 android:padding="0dp"
-                android:theme="@style/TextInputLayoutTextStyle">
+                android:theme="@style/TextInputLayoutTextStyle"
+                app:hintTextAppearance="@style/TextAppearance.AppCompat.Body1">
 
                 <AutoCompleteTextView
                     android:id="@+id/add_book_category"

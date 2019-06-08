@@ -30,8 +30,7 @@ public class CameraActivity extends AppCompatActivity implements OnSuccessListen
                     .enableClassification()  // Optional
                     .build());
 
-    private final OverlayView rectView = new OverlayView(this);
-    private FrameLayout rootView;
+    private OverlayView rectView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -42,7 +41,9 @@ public class CameraActivity extends AppCompatActivity implements OnSuccessListen
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_camera);
 
-        rootView = findViewById(R.id.camera_root_container);
+        final FrameLayout rootView = findViewById(R.id.camera_root_container);
+        rectView = new OverlayView(this);
+
         rootView.addView(rectView, 1);
         rectView.setZOrderOnTop(true);
 
@@ -57,6 +58,7 @@ public class CameraActivity extends AppCompatActivity implements OnSuccessListen
                                 .build()))
                         .addOnSuccessListener(this)
                         .addOnFailureListener(this));
+        camera.open();
     }
 
     @Override
@@ -68,6 +70,7 @@ public class CameraActivity extends AppCompatActivity implements OnSuccessListen
             Integer id = obj.getTrackingId();
             String entityId = obj.getEntityId();
             rectView.drawRect(obj.getBoundingBox());
+            System.out.println(id + " " + entityId);
         }
         //setResult(10,new Intent());
     }
