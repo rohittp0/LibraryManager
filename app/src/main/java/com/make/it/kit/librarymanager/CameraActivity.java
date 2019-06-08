@@ -22,8 +22,6 @@ import com.otaliastudios.cameraview.Preview;
 
 import java.util.List;
 
-import static java.util.Objects.requireNonNull;
-
 public class CameraActivity extends AppCompatActivity implements OnSuccessListener<List<FirebaseVisionObject>>, OnFailureListener
 {
     private final FirebaseVisionObjectDetector objectDetector =
@@ -70,7 +68,6 @@ public class CameraActivity extends AppCompatActivity implements OnSuccessListen
     {
         for (FirebaseVisionObject obj : detectedObjects)
         {
-            if (requireNonNull(obj.getClassificationConfidence()) < 50) continue;
             Integer id = obj.getTrackingId();
             String entityId = obj.getEntityId();
             rectView.drawRect(obj.getBoundingBox());
