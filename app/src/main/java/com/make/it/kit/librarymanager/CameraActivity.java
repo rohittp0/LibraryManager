@@ -16,7 +16,9 @@ import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata;
 import com.google.firebase.ml.vision.objects.FirebaseVisionObject;
 import com.google.firebase.ml.vision.objects.FirebaseVisionObjectDetector;
 import com.google.firebase.ml.vision.objects.FirebaseVisionObjectDetectorOptions;
+import com.otaliastudios.cameraview.Audio;
 import com.otaliastudios.cameraview.CameraView;
+import com.otaliastudios.cameraview.Preview;
 
 import java.util.List;
 
@@ -58,6 +60,8 @@ public class CameraActivity extends AppCompatActivity implements OnSuccessListen
                                 .build()))
                         .addOnSuccessListener(this)
                         .addOnFailureListener(this));
+        camera.setAudio(Audio.OFF);
+        camera.setPreview(Preview.GL_SURFACE);
         camera.open();
     }
 
