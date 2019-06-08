@@ -5,7 +5,7 @@
 
 ## Code Structure 
 
- This repo is struchered in accordance with the file structure of android studio. This is for easy cloning for those intrested in forking.
+ This repo is structured in accordance with the file structure of android studio. This is for easy cloning for those interested in forking.
 
 ## About Me
 

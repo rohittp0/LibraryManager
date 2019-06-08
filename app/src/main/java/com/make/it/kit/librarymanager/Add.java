@@ -52,6 +52,7 @@ import java.util.Objects;
 
 import static android.app.Activity.RESULT_OK;
 
+@SuppressWarnings("WeakerAccess")
 public class Add extends Fragment implements OnFailureListener
 {
 

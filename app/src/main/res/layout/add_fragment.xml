@@ -133,7 +133,8 @@
                     android:paddingEnd="0dp"
                     android:textColor="@color/white"
                     android:textCursorDrawable="@drawable/edit_text_cursor"
-                    android:textSize="15sp" />
+                    android:textSize="15sp"
+                    tools:targetApi="o" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -156,7 +157,8 @@
                     android:paddingEnd="0dp"
                     android:textColor="@color/white"
                     android:textCursorDrawable="@drawable/edit_text_cursor"
-                    android:textSize="15sp" />
+                    android:textSize="15sp"
+                    tools:targetApi="o" />
             </com.google.android.material.textfield.TextInputLayout>
 
         </LinearLayout>

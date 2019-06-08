@@ -30,6 +30,7 @@ import java.util.Locale;
  * Use the {@link Stats#newInstance} factory method to
  * create an instance of this fragment.
  */
+@SuppressWarnings("WeakerAccess")
 public class Stats extends Fragment
 {
     private View view;
@@ -43,7 +44,6 @@ public class Stats extends Fragment
     private int bookCount = 0;
     private int authorCount = 0;
     private int categoryCount = 0;
-    private int userCount = 0;
 
     public Stats()
     {
@@ -78,6 +78,7 @@ public class Stats extends Fragment
         book.setText(String.format(Locale.US, "%d", bookCount));
         author.setText(String.format(Locale.US, "%d", authorCount));
         category.setText(String.format(Locale.US, "%d", categoryCount));
+        final int userCount = 0;
         user.setText(String.format(Locale.US, "%d", userCount));
 
         return view;
@@ -160,13 +161,15 @@ public class Stats extends Fragment
         }
     }
 
-    void setUserCount(int userCount)
-    {
-        this.userCount = userCount;
-        if (view != null)
-        {
-            TextView text = view.findViewById(R.id.user_count);
-            text.setText(String.format(Locale.US, "%d", userCount));
-        }
-    }
+    // --Commented out by Inspection START (8/6/19 10:16 PM):
+    //    void setUserCount(int userCount)
+    //    {
+    //        this.userCount = userCount;
+    //        if (view != null)
+    //        {
+    //            TextView text = view.findViewById(R.id.user_count);
+    //            text.setText(String.format(Locale.US, "%d", userCount));
+    //        }
+    //    }
+    // --Commented out by Inspection STOP (8/6/19 10:16 PM)
 }
