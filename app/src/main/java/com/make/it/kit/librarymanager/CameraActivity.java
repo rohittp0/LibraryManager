@@ -52,12 +52,13 @@ public class CameraActivity extends AppCompatActivity implements OnSuccessListen
                 objectDetector.processImage(FirebaseVisionImage.fromByteArray(frame.getData(),
                         new FirebaseVisionImageMetadata.Builder()
                                 .setFormat(FirebaseVisionImageMetadata.IMAGE_FORMAT_NV21)
-                                .setRotation(frame.getRotation())
+                                .setRotation(((int) Math.round(frame.getRotation() / 90.0)))
                                 .setHeight(frame.getSize().getHeight())
                                 .setWidth(frame.getSize().getWidth())
                                 .build()))
                         .addOnSuccessListener(this)
                         .addOnFailureListener(this));
+        camera.setLifecycleOwner(this);
         camera.setAudio(Audio.OFF);
         camera.setPreview(Preview.GL_SURFACE);
         camera.open();
