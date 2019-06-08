@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.HorizontalScrollView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -87,6 +88,9 @@ public class Stats extends Fragment
     {
         AuthorChart = view.findViewById(R.id.author_chart);
         CategoryChart = view.findViewById(R.id.category_chart);
+
+        HorizontalScrollView cards = view.findViewById(R.id.stats_cards_scrollView);
+        cards.post(() -> cards.smoothScrollTo(view.findViewById(R.id.book_count).getWidth(), 0));
 
         initChart(AuthorChart);
         initChart(CategoryChart);
