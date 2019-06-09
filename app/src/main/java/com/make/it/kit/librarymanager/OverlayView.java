@@ -44,6 +44,7 @@ class OverlayView extends SurfaceView
                     canvas.drawRect(rect, paint);
                     canvas.drawText(label, x, y, paint);
                 }
+                mHolder.unlockCanvasAndPost(canvas);
             }
         } catch (Exception error)
         {

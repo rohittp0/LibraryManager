@@ -77,6 +77,7 @@ public class CameraActivity extends AppCompatActivity implements OnFailureListen
                     {
                         for (FirebaseVisionObject obj : detectedObjects)
                         {
+                            rectView.drawRect(obj.getBoundingBox(), ".");
                             if (labelTable.containsKey(obj.getEntityId()))
                             {
                                 rectView.drawRect(obj.getBoundingBox(),
@@ -89,6 +90,7 @@ public class CameraActivity extends AppCompatActivity implements OnFailureListen
             labeler.processImage(FirebaseVisionImage.fromByteArray(frame.getData(), metadata))
                     .addOnSuccessListener((labels) ->
                     {
+                        if (labels.size() < 1) return;
                         final FirebaseVisionImageLabel label = labels.get(0);
                         if (rectTable.containsKey(label.getEntityId()))
                         {
