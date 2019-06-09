@@ -29,19 +29,25 @@ class OverlayView extends SurfaceView
 
     void drawRect(Rect rect, String label)
     {
-        invalidate();
-        if (mHolder.getSurface().isValid())
+        try
         {
-            final Canvas canvas = mHolder.lockCanvas();
-            float x = rect.left + 10f;
-            float y = rect.bottom + 20f;
-            if (canvas != null)
+            invalidate();
+            if (mHolder.getSurface().isValid())
             {
-                canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-                canvas.drawColor(Color.TRANSPARENT);
-                canvas.drawRect(rect, paint);
-                canvas.drawText(label, x, y, paint);
+                final Canvas canvas = mHolder.lockCanvas();
+                float x = rect.left + 10f;
+                float y = rect.bottom + 20f;
+                if (canvas != null)
+                {
+                    canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+                    canvas.drawColor(Color.TRANSPARENT);
+                    canvas.drawRect(rect, paint);
+                    canvas.drawText(label, x, y, paint);
+                }
             }
+        } catch (Exception error)
+        {
+            error.printStackTrace(); // TODO add crashlytics
         }
     }
 }
