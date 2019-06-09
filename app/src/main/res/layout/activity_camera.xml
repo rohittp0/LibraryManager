@@ -23,10 +23,11 @@
         android:gravity="center_horizontal">
 
         <ImageButton
-            android:contentDescription="@string/NULL"
+            android:id="@+id/camera_image_capture"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_circle"
+            android:contentDescription="@string/NULL"
             android:foregroundGravity="fill"
             android:src="@drawable/ic_capture_photo" />
     </RelativeLayout>
