@@ -116,6 +116,7 @@ public class CameraActivity extends AppCompatActivity implements OnFailureListen
                     FirebaseVisionImage.fromByteArray(frame.getData(), metadata);
             final OnSuccessListener<FirebaseVisionText> textRecognitionComplected = (result) ->
             {
+                rectView.clearCanvas();
                 for (FirebaseVisionText.TextBlock block :
                         result.getTextBlocks())
                     for (FirebaseVisionText.Line line :
