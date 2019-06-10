@@ -1,48 +1,45 @@
 package com.make.it.kit.librarymanager;
 
 import android.content.Intent;
-import android.graphics.Rect;
+import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.ml.vision.FirebaseVision;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata;
 import com.google.firebase.ml.vision.label.FirebaseVisionImageLabel;
 import com.google.firebase.ml.vision.label.FirebaseVisionImageLabeler;
-import com.google.firebase.ml.vision.objects.FirebaseVisionObject;
-import com.google.firebase.ml.vision.objects.FirebaseVisionObjectDetector;
-import com.google.firebase.ml.vision.objects.FirebaseVisionObjectDetectorOptions;
-import com.otaliastudios.cameraview.Audio;
+import com.google.firebase.ml.vision.text.FirebaseVisionText;
+import com.google.firebase.ml.vision.text.FirebaseVisionTextRecognizer;
 import com.otaliastudios.cameraview.CameraListener;
 import com.otaliastudios.cameraview.CameraView;
-import com.otaliastudios.cameraview.Mode;
+import com.otaliastudios.cameraview.Frame;
+import com.otaliastudios.cameraview.FrameProcessor;
 import com.otaliastudios.cameraview.PictureResult;
 import com.otaliastudios.cameraview.Preview;
 
-import java.util.HashMap;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
-public class CameraActivity extends AppCompatActivity implements OnFailureListener
+public class CameraActivity extends AppCompatActivity implements OnFailureListener, FrameProcessor
 {
-    private final FirebaseVisionObjectDetector objectDetector =
-            FirebaseVision.getInstance().getOnDeviceObjectDetector(new FirebaseVisionObjectDetectorOptions.Builder()
-                    .setDetectorMode(FirebaseVisionObjectDetectorOptions.STREAM_MODE)
-                    .enableClassification()  // Optional
-                    .build());
     private final FirebaseVisionImageLabeler labeler = FirebaseVision.getInstance()
             .getOnDeviceImageLabeler();
-
-    private final HashMap<String, String> labelTable = new HashMap<>();
-    private final HashMap<String, Rect> rectTable = new HashMap<>();
+    private final FirebaseVisionTextRecognizer textRecognizer = FirebaseVision.getInstance()
+            .getOnDeviceTextRecognizer();
 
     private OverlayView rectView;
+    private TextView labelView;
 
     private int SUCCESS = 546;
 
@@ -50,57 +47,20 @@ public class CameraActivity extends AppCompatActivity implements OnFailureListen
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_camera);
 
         final FrameLayout rootView = findViewById(R.id.camera_root_container);
         rectView = new OverlayView(this);
+        labelView = findViewById(R.id.camera_image_label);
 
         rootView.addView(rectView, 1);
         rectView.setZOrderOnTop(true);
 
         CameraView camera = findViewById(R.id.camera_view);
         addCapture(camera, findViewById(R.id.camera_image_capture));
-        camera.addFrameProcessor((frame) ->
-        {
-            final FirebaseVisionImageMetadata metadata = new FirebaseVisionImageMetadata.Builder()
-                    .setFormat(FirebaseVisionImageMetadata.IMAGE_FORMAT_NV21)
-                    .setRotation(((int) Math.round(frame.getRotation() / 90.0)))
-                    .setHeight(frame.getSize().getHeight())
-                    .setWidth(frame.getSize().getWidth())
-                    .build();
-            objectDetector.processImage(FirebaseVisionImage.fromByteArray(frame.getData(),
-                    metadata))
-                    .addOnSuccessListener(detectedObjects ->
-                    {
-                        for (FirebaseVisionObject obj : detectedObjects)
-                        {
-                            rectView.drawRect(obj.getBoundingBox(), ".");
-                            if (labelTable.containsKey(obj.getEntityId()))
-                            {
-                                rectView.drawRect(obj.getBoundingBox(),
-                                        labelTable.get(obj.getEntityId()));
-                                labelTable.remove(obj.getEntityId());
-                            } else rectTable.put(obj.getEntityId(), obj.getBoundingBox());
-                        }
-                    })
-                    .addOnFailureListener(this);
-            labeler.processImage(FirebaseVisionImage.fromByteArray(frame.getData(), metadata))
-                    .addOnSuccessListener((labels) ->
-                    {
-                        if (labels.size() < 1) return;
-                        final FirebaseVisionImageLabel label = labels.get(0);
-                        if (rectTable.containsKey(label.getEntityId()))
-                        {
-                            rectView.drawRect(rectTable.get(label.getEntityId()),
-                                    label.getText());
-                            rectTable.remove(label.getEntityId());
-                        } else labelTable.put(label.getEntityId(), label.getText());
-                    })
-                    .addOnFailureListener(this);
-        });
+        camera.addFrameProcessor(this);
         camera.open();
     }
 
@@ -113,16 +73,26 @@ public class CameraActivity extends AppCompatActivity implements OnFailureListen
             {
                 result.toBitmap((image) ->
                 {
-                    final Intent ret = new Intent();
-                    ret.putExtra("image", image);
-                    CameraActivity.this.setResult(SUCCESS, ret);
+                    try
+                    {
+                        final Intent ret = new Intent();
+                        final File imageFile = new File(Utils.createTemporaryFile().getPath());
+                        final FileOutputStream fos = new FileOutputStream(imageFile);
+                        assert image != null;
+                        image.compress(Bitmap.CompressFormat.PNG, 100, fos);
+                        fos.flush();
+                        ret.putExtra("image", imageFile.toURI());
+                        CameraActivity.this.setResult(SUCCESS, ret);
+                        CameraActivity.this.finish();
+                    } catch (IOException e)
+                    {
+                        e.printStackTrace();
+                    }
                 });
             }
         });
         camera.setLifecycleOwner(this);
-        camera.setAudio(Audio.OFF);
         camera.setPreview(Preview.GL_SURFACE);
-        camera.setMode(Mode.PICTURE);
         button.setOnClickListener((event) -> camera.takePicture());
     }
 
@@ -130,5 +100,47 @@ public class CameraActivity extends AppCompatActivity implements OnFailureListen
     public void onFailure(@NonNull Exception e)
     {
         e.printStackTrace(); //TODO add crashlytics
+    }
+
+    @Override
+    public void process(@NonNull Frame frame)
+    {
+        {
+            final FirebaseVisionImageMetadata metadata = new FirebaseVisionImageMetadata.Builder()
+                    .setFormat(FirebaseVisionImageMetadata.IMAGE_FORMAT_NV21)
+                    .setRotation(((int) Math.round(frame.getRotation() / 90.0)))
+                    .setHeight(frame.getSize().getHeight())
+                    .setWidth(frame.getSize().getWidth())
+                    .build();
+            final FirebaseVisionImage textImage =
+                    FirebaseVisionImage.fromByteArray(frame.getData(), metadata);
+            final OnSuccessListener<FirebaseVisionText> textRecognitionComplected = (result) ->
+            {
+                for (FirebaseVisionText.TextBlock block :
+                        result.getTextBlocks())
+                    for (FirebaseVisionText.Line line :
+                            block.getLines())
+                        if (line.getBoundingBox() != null && line.getText() != null
+                                && line.getText().length() > 0)
+                            rectView.drawText(line.getBoundingBox(),
+                                    line.getText());
+                System.gc();
+            };
+            labeler.processImage(FirebaseVisionImage.fromByteArray(frame.getData(), metadata))
+                    .addOnSuccessListener((labels) ->
+                    {
+                        for (FirebaseVisionImageLabel label : labels)
+                            if (label.getText().toLowerCase().trim().equals("poster"))
+                            {
+                                textRecognizer.processImage(textImage)
+                                        .addOnSuccessListener(textRecognitionComplected)
+                                        .addOnFailureListener(this);
+                                labelView.setText(CameraActivity.this
+                                        .getString(R.string.camera_view_book_label));
+                                break;
+                            } else labelView.setText(label.getText());
+                    })
+                    .addOnFailureListener(this);
+        }
     }
 }

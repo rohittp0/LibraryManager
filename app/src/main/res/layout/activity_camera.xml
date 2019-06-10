@@ -12,24 +12,41 @@
         android:id="@+id/camera_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        app:cameraAudio="off"
+        app:cameraGesturePinch="zoom"
+        app:cameraGestureTap="focus"
+        app:cameraMode="picture"
+        app:cameraPlaySounds="true"
         app:cameraPreview="glSurface" />
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:layout_marginBottom="10dp"
-        android:background="@color/transparent"
-        android:gravity="center_horizontal">
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/camera_image_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="15dp"
+            android:background="@color/transparent"
+            android:gravity="center"
+            android:text="@string/place_holder_text"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
         <ImageButton
             android:id="@+id/camera_image_capture"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
             android:background="@drawable/bg_circle"
             android:contentDescription="@string/NULL"
             android:foregroundGravity="fill"
             android:src="@drawable/ic_capture_photo" />
-    </RelativeLayout>
+    </LinearLayout>
 
 </FrameLayout>

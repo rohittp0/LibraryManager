@@ -52,21 +52,19 @@ import java.util.Objects;
 
 import static android.app.Activity.RESULT_OK;
 
-@SuppressWarnings("WeakerAccess")
 public class Add extends Fragment implements OnFailureListener
 {
 
     private final int capture_image = 123;
     private final int request_permission = 312;
-    private Uri mImageUri;
-
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private final Map<Rect, String> TextTable = new HashMap<>();
+    private final FirebaseVisionTextRecognizer detector = FirebaseVision.getInstance()
+            .getOnDeviceTextRecognizer();
     private Context mContext;
     private View view;
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-
     //Text Extraction
     private Bitmap coverPhoto = null;
-    private final Map<Rect, String> TextTable = new HashMap<>();
     private EditText currentEditText;
 
     @NonNull
@@ -91,7 +89,8 @@ public class Add extends Fragment implements OnFailureListener
                 } else
                 {
                     // this case will occur when taking a picture with a camera
-                    performCrop(mImageUri);
+                    performCrop((Uri) Objects.requireNonNull(Objects
+                            .requireNonNull(data).getExtras()).get("image"));
                 }
             } else if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE)
             {
@@ -214,21 +213,13 @@ public class Add extends Fragment implements OnFailureListener
     {
         Intent galleryIntent = new Intent(Intent.ACTION_PICK,
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        Intent cameraIntent = new Intent(getContext(),CameraActivity.class);
+        Intent cameraIntent = new Intent(getContext(), CameraActivity.class);
         Intent chooser = new Intent(Intent.ACTION_CHOOSER);
-        try
-        {
-            mImageUri = Utils.createTemporaryFile();
-            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
-            chooser.putExtra(Intent.EXTRA_INTENT, galleryIntent);
-            chooser.putExtra(Intent.EXTRA_TITLE, getString(R.string.add_book_heading));
-            Intent[] intentArray = {cameraIntent};
-            chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
-            startActivityForResult(chooser, capture_image);
-        } catch (IOException e)
-        {
-            e.printStackTrace(); //TODO add crashlytics
-        }
+        chooser.putExtra(Intent.EXTRA_INTENT, galleryIntent);
+        chooser.putExtra(Intent.EXTRA_TITLE, getString(R.string.add_book_heading));
+        Intent[] intentArray = {cameraIntent};
+        chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
+        startActivityForResult(chooser, capture_image);
     }
 
     /**
@@ -257,8 +248,6 @@ public class Add extends Fragment implements OnFailureListener
         int id = MainActivity.createNotification("Extracting Text",
                 getString(R.string.extracting_text_notification_message));
         final FirebaseVisionImage firebaseVisionImage = FirebaseVisionImage.fromBitmap(image);
-        final FirebaseVisionTextRecognizer detector = FirebaseVision.getInstance()
-                .getOnDeviceTextRecognizer();
         detector.processImage(firebaseVisionImage)
                 .addOnSuccessListener(result ->
                 {

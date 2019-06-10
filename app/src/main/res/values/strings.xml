@@ -39,4 +39,6 @@
     <string name="stats_books">Books</string>
     <string name="stats_authors">Authors</string>
     <string name="stats_users">Users</string>
+    <string name="camera_view_auto_crop_text">Auto Crop</string>
+    <string name="camera_view_book_label">Book</string>
 </resources>
