@@ -41,10 +41,23 @@ class OverlayView extends SurfaceView
             final Canvas canvas = mHolder.lockCanvas();
             if (canvas != null)
             {
-                canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-                canvas.drawColor(Color.TRANSPARENT);
                 canvas.drawRect(rect, paint);
                 canvas.drawText(text, rect.left + 3f, rect.bottom + 20f, textPaint);
+            }
+            mHolder.unlockCanvasAndPost(canvas);
+        }
+    }
+
+    void clearCanvas()
+    {
+        invalidate();
+        if (mHolder.getSurface().isValid())
+        {
+            final Canvas canvas = mHolder.lockCanvas();
+            if (canvas != null)
+            {
+                canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+                canvas.drawColor(Color.TRANSPARENT);
             }
             mHolder.unlockCanvasAndPost(canvas);
         }
