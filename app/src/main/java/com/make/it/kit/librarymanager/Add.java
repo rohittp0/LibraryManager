@@ -55,6 +55,7 @@ import static android.app.Activity.RESULT_OK;
 public class Add extends Fragment implements OnFailureListener
 {
 
+    private static Uri IMAGE_URI;
     private final int capture_image = 123;
     private final int request_permission = 312;
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -79,9 +80,19 @@ public class Add extends Fragment implements OnFailureListener
     {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK)
-            if (requestCode == capture_image && data != null && data.getData() != null)
-                performCrop(data.getData());
-            else if (requestCode == CameraActivity.SUCCESS && data.getExtras() != null)
+            if (requestCode == capture_image)
+            {
+                if (data != null && data.getData() != null)
+                {
+                    // this case will occur in case of picking image from the Gallery,
+                    // but not when taking picture with a camera
+                    performCrop(data.getData());
+                } else
+                {
+                    // this case will occur when taking a picture with a camera
+                    performCrop(IMAGE_URI);
+                }
+            } else if (requestCode == CameraActivity.SUCCESS && data.getExtras() != null)
                 performCrop((Uri) data.getExtras().get("image"));
             else if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE)
             {
@@ -202,15 +213,26 @@ public class Add extends Fragment implements OnFailureListener
 
     private void capturePhoto()
     {
-        Intent galleryIntent = new Intent(Intent.ACTION_PICK,
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        Intent cameraIntent = new Intent(getContext(), CameraActivity.class);
-        Intent chooser = new Intent(Intent.ACTION_CHOOSER);
-        chooser.putExtra(Intent.EXTRA_INTENT, galleryIntent);
-        chooser.putExtra(Intent.EXTRA_TITLE, getString(R.string.add_book_heading));
-        Intent[] intentArray = {cameraIntent};
-        chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
-        startActivityForResult(chooser, capture_image);
+        try
+        {
+            IMAGE_URI = Utils.createTemporaryFile();
+            Intent galleryIntent = new Intent(Intent.ACTION_PICK,
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            Intent appIntent = new Intent(getContext(), CameraActivity.class);
+            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            Intent chooser = new Intent(Intent.ACTION_CHOOSER);
+
+            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, IMAGE_URI);
+
+            chooser.putExtra(Intent.EXTRA_INTENT, galleryIntent);
+            chooser.putExtra(Intent.EXTRA_TITLE, getString(R.string.add_book_heading));
+            Intent[] intentArray = {cameraIntent, appIntent};
+            chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
+            startActivityForResult(chooser, capture_image);
+        } catch (IOException error)
+        {
+            error.printStackTrace(); //TODO add crashlytics
+        }
     }
 
     /**
