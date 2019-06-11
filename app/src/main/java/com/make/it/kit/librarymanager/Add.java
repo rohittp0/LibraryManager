@@ -79,20 +79,11 @@ public class Add extends Fragment implements OnFailureListener
     {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK)
-            if (requestCode == capture_image)
-            {
-                if (data != null && data.getData() != null)
-                {
-                    // this case will occur in case of picking image from the Gallery,
-                    // but not when taking picture with a camera
-                    performCrop(data.getData());
-                } else
-                {
-                    // this case will occur when taking a picture with a camera
-                    performCrop((Uri) Objects.requireNonNull(Objects
-                            .requireNonNull(data).getExtras()).get("image"));
-                }
-            } else if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE)
+            if (requestCode == capture_image && data != null && data.getData() != null)
+                performCrop(data.getData());
+            else if (requestCode == CameraActivity.SUCCESS && data.getExtras() != null)
+                performCrop((Uri) data.getExtras().get("image"));
+            else if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE)
             {
                 CropImage.ActivityResult result = CropImage.getActivityResult(data);
                 try

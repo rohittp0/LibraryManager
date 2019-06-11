@@ -1,5 +1,6 @@
 package com.make.it.kit.librarymanager;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -33,15 +34,13 @@ import java.io.IOException;
 
 public class CameraActivity extends AppCompatActivity implements OnFailureListener, FrameProcessor
 {
+    static final int SUCCESS = 546;
     private final FirebaseVisionImageLabeler labeler = FirebaseVision.getInstance()
             .getOnDeviceImageLabeler();
     private final FirebaseVisionTextRecognizer textRecognizer = FirebaseVision.getInstance()
             .getOnDeviceTextRecognizer();
-
     private OverlayView rectView;
     private TextView labelView;
-
-    private int SUCCESS = 546;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -75,7 +74,11 @@ public class CameraActivity extends AppCompatActivity implements OnFailureListen
                 {
                     try
                     {
-                        final Intent ret = new Intent();
+                        Dialog dialog = new Dialog(CameraActivity.this, R.style.Dialog_FrameLess);
+                        dialog.setContentView(R.layout.progressbar);
+                        dialog.setCancelable(false);
+                        dialog.show();
+                        final Intent ret = CameraActivity.this.getIntent();
                         final File imageFile = new File(Utils.createTemporaryFile().getPath());
                         final FileOutputStream fos = new FileOutputStream(imageFile);
                         assert image != null;
@@ -83,6 +86,7 @@ public class CameraActivity extends AppCompatActivity implements OnFailureListen
                         fos.flush();
                         ret.putExtra("image", imageFile.toURI());
                         CameraActivity.this.setResult(SUCCESS, ret);
+                        dialog.dismiss();
                         CameraActivity.this.finish();
                     } catch (IOException e)
                     {

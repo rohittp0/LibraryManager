@@ -74,6 +74,7 @@ final class Utils
             if (!tempDir.mkdirs()) throw new IOException("Unable to create temp.");
         }
         File ret = File.createTempFile("picture", ".png", tempDir);
+        if (!ret.delete()) throw new IOException("Unable to delete file.");
         return Uri.fromFile(ret);
     }
 
