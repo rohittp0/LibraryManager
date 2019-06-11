@@ -74,7 +74,8 @@ public class CameraActivity extends AppCompatActivity implements OnFailureListen
                 {
                     try
                     {
-                        Dialog dialog = new Dialog(CameraActivity.this, R.style.Dialog_FrameLess);
+                        final Dialog dialog = new Dialog(CameraActivity.this,
+                                R.style.Dialog_FrameLess);
                         dialog.setContentView(R.layout.progressbar);
                         dialog.setCancelable(false);
                         dialog.show();
