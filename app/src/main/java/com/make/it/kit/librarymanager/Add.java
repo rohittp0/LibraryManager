@@ -33,6 +33,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.ml.vision.FirebaseVision;
@@ -171,10 +172,13 @@ public class Add extends Fragment implements OnFailureListener
             return false;
         });
 
-        initTextView(view.findViewById(R.id.add_book_author));
-        initTextView(view.findViewById(R.id.add_book_name));
-        initTextView(view.findViewById(R.id.add_book_category));
-        initTextView(view.findViewById(R.id.add_book_price));
+        final TextView[] textViews = {
+                view.findViewById(R.id.add_book_name),
+                view.findViewById(R.id.add_book_author),
+                view.findViewById(R.id.add_book_category),
+                view.findViewById(R.id.add_book_price)
+        };
+        initTextView(textViews);
 
         db.collection("stats")
                 .document("Book_Props").get().addOnCompleteListener(task ->
@@ -184,21 +188,46 @@ public class Add extends Fragment implements OnFailureListener
             List<String> category = (List<String>) bookProps.get("Categories");
             initAutoCompleteEditText(R.id.add_book_author, author);
             initAutoCompleteEditText(R.id.add_book_category, category);
-        })
-                .addOnFailureListener(this);
+        }).addOnFailureListener(this);
 
+        MaterialButton addButton = view.findViewById(R.id.add_book_submit_button);
+        addButton.setOnClickListener((clicked_view) ->
+        {
+            if (textViews[0].getText().toString().isEmpty())
+                Utils.showToast("Please enter a name.", mContext);
+            else if (textViews[1].getText().toString().isEmpty())
+                Utils.showToast("Author's name can't be empty.", mContext);
+            else if (textViews[2].getText().toString().isEmpty())
+                Utils.showToast("Please enter a category", mContext);
+            else
+            {
+                float price;
+
+                if (textViews[3].getText().toString().isEmpty()) price = 0f;
+                else price = Float.parseFloat(textViews[3].getText().toString());
+
+                Book book = new Book(textViews[0].getText().toString(),
+                        textViews[1].getText().toString(), textViews[2].getText().toString(),
+                        "", "",
+                        price);
+
+            }
+        });
         return view;
     }
 
-    private void initTextView(@NonNull TextView text)
+    private void initTextView(@NonNull TextView[] textViews)
     {
-        text.setOnClickListener(v ->
+        for (TextView text : textViews)
         {
-            currentEditText = (EditText) v;
-            Utils.showToast("Selected", mContext);
-        });
-        text.startAnimation(AnimationUtils.loadAnimation(getContext(),
-                R.anim.zoom_in));
+            text.setOnClickListener(v ->
+            {
+                currentEditText = (EditText) v;
+                Utils.showToast("Selected", mContext);
+            });
+            text.startAnimation(AnimationUtils.loadAnimation(getContext(),
+                    R.anim.zoom_in));
+        }
     }
 
     private void initAutoCompleteEditText(int id, List<String> options)
