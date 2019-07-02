@@ -95,9 +95,9 @@ public class MainActivity extends AppCompatActivity implements
     //Design
     private final DisplayMetrics displayMetrics = new DisplayMetrics();
     private final FragmentManager manager = this.getSupportFragmentManager();
+    private final Fragment[] pages = {null, Add.newInstance(), Stats.newInstance()};
     private Home searchFragment;
     private int currentMenuItem;
-    private final Fragment[] pages = {null, Add.newInstance(), Stats.newInstance()};
     private Dialog loading;
 
     static int createNotification(CharSequence textTitle, CharSequence textContent)
@@ -300,13 +300,14 @@ public class MainActivity extends AppCompatActivity implements
 
     private void alert(CharSequence message)
     {
-        AlertDialog alert = new AlertDialog.Builder(this).create();
-        alert.setTitle("Error");
-        alert.setIcon(R.drawable.ic_error);
-        alert.setButton(AlertDialog.BUTTON_POSITIVE, "Retry",
-                (dialog, which) -> startActivityForResult(signIn, RC_SIGN_IN));
-        alert.setMessage(message);
-        alert.show();
+        new AlertDialog.Builder(this)
+                .setTitle("Error")
+                .setIcon(R.drawable.ic_error)
+                .setPositiveButton("Retry",
+                        (dialog, which) -> startActivityForResult(signIn, RC_SIGN_IN))
+                .setMessage(message)
+                .create()
+                .show();
     }
 
     @Override
