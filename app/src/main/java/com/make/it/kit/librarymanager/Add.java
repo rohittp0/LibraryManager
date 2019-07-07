@@ -202,11 +202,11 @@ public class Add extends Fragment implements OnFailureListener
         MaterialButton addButton = view.findViewById(R.id.add_book_submit_button);
         addButton.setOnClickListener((clicked_view) ->
         {
-            if (textViews[0].getText().toString().isEmpty())
+            if (Utils.checkNull(textViews[0].getText().toString()))
                 Utils.showToast("Please enter a name.", mContext);
-            else if (textViews[1].getText().toString().isEmpty())
+            else if (Utils.checkNull(textViews[1].getText().toString()))
                 Utils.showToast("Author's name can't be empty.", mContext);
-            else if (textViews[2].getText().toString().isEmpty())
+            else if (Utils.checkNull(textViews[2].getText().toString()))
                 Utils.showToast("Please enter a category", mContext);
             else addBook(textViews);
         });
@@ -237,30 +237,6 @@ public class Add extends Fragment implements OnFailureListener
         textView.setThreshold(1);
     }
 
-    private void capturePhoto()
-    {
-        try
-        {
-            IMAGE_URI = Utils.createTemporaryFile();
-            Intent galleryIntent = new Intent(Intent.ACTION_PICK,
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            Intent appIntent = new Intent(getContext(), CameraActivity.class);
-            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            Intent chooser = new Intent(Intent.ACTION_CHOOSER);
-
-            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, IMAGE_URI);
-
-            chooser.putExtra(Intent.EXTRA_INTENT, galleryIntent);
-            chooser.putExtra(Intent.EXTRA_TITLE, getString(R.string.add_book_heading));
-            Intent[] intentArray = {cameraIntent, appIntent};
-            chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
-            startActivityForResult(chooser, capture_image);
-        } catch (IOException error)
-        {
-            onFailure(error);
-        }
-    }
-
     private void addBook(@NonNull TextView[] textViews)
     {
         if (coverPhoto != null)
@@ -288,11 +264,41 @@ public class Add extends Fragment implements OnFailureListener
         } else addBook(textViews, null, null);
     }
 
+    private void capturePhoto()
+    {
+        try
+        {
+            IMAGE_URI = Utils.createTemporaryFile();
+            Intent galleryIntent = new Intent(Intent.ACTION_PICK,
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            Intent appIntent = new Intent(getContext(), CameraActivity.class);
+            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            Intent chooser = new Intent(Intent.ACTION_CHOOSER);
+
+            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, IMAGE_URI);
+
+            chooser.putExtra(Intent.EXTRA_INTENT, galleryIntent);
+            chooser.putExtra(Intent.EXTRA_TITLE, getString(R.string.add_book_heading));
+            Intent[] intentArray = {cameraIntent, appIntent};
+            chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
+            startActivityForResult(chooser, capture_image);
+        } catch (IOException error)
+        {
+            onFailure(error);
+        }
+    }
+
     private void addBook(@NonNull TextView[] textViews, String photo, String photoRef)
     {
         float price = 0;
         String price_text = textViews[3].getText().toString().trim();
-        if (!price_text.isEmpty()) price = Float.parseFloat(price_text);
+        try
+        {
+            if (!Utils.checkNull(price_text)) price = Float.parseFloat(price_text);
+        } catch (NumberFormatException error)
+        {
+            error.printStackTrace();
+        }
 
         Book book = new Book(textViews[0].getText().toString(),
                 textViews[1].getText().toString(), textViews[2].getText().toString(),

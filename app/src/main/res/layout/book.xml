@@ -23,7 +23,7 @@
             android:background="#2d2d2d"
             android:contentDescription="@string/cover_photo_description"
             android:foregroundGravity="fill"
-            android:scaleType="fitCenter" />
+            android:scaleType="fitXY" />
 
         <TextView
             android:id="@+id/preview_book_name"

@@ -33,6 +33,8 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata;
 
+import org.jetbrains.annotations.Contract;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -76,6 +78,12 @@ final class Utils
         File ret = File.createTempFile("picture", ".png", tempDir);
         if (!ret.delete()) throw new IOException("Unable to delete file.");
         return Uri.fromFile(ret);
+    }
+
+    @Contract("null -> true")
+    static boolean checkNull(String string)
+    {
+        return string == null || string.isEmpty() || string.trim().length() <= 0 || string.toLowerCase().trim().equals("null");
     }
 
     static Bitmap scaleToFit(Bitmap img, View view)

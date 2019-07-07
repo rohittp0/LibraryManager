@@ -34,7 +34,7 @@ class Book
         setPhoto(Photo);
         setPhotoRef(PhotoRef);
         setPrice(Price);
-        if (Photo == null || Photo.isEmpty())
+        if (Utils.checkNull(Photo) || Utils.checkNull(PhotoRef))
             PhotoID = images[(int) Math.round(Math.random() * 100) % 3];
     }
 
@@ -79,7 +79,7 @@ class Book
 
     public void setPhoto(String photo)
     {
-        Photo = !photo.toLowerCase().trim().equals("null") ? photo : null;
+        Photo = Utils.checkNull(photo) ? null : Photo;
     }
 
     public String getPhotoRef()
@@ -89,7 +89,7 @@ class Book
 
     public void setPhotoRef(String photoRef)
     {
-        PhotoRef = !photoRef.toLowerCase().trim().equals("null") ? photoRef : null;
+        PhotoRef = Utils.checkNull(photoRef) ? null : photoRef;
     }
 
     public Timestamp getSavedOn()

@@ -40,7 +40,7 @@
                 android:layout_height="170dp"
                 android:background="#2d2d2d"
                 android:contentDescription="@string/NULL"
-                android:scaleType="fitCenter"
+                android:scaleType="fitXY"
                 tools:elevation="5dp" />
 
             <TextView
