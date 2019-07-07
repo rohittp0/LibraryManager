@@ -51,6 +51,8 @@ final class Utils
 {
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
 
+    static final String API_KEY = "AIzaSyCvmNRcN-WGh9jy6vgHb8XM4s4D2rDdOxs";
+
     static
     {
         ORIENTATIONS.append(Surface.ROTATION_0, 90);

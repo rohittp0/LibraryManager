@@ -74,6 +74,8 @@ public class Add extends Fragment implements OnFailureListener
     private final Map<Rect, String> TextTable = new HashMap<>();
     //class data
     private Context mContext;
+    //UI
+    private AlertDialog addingDialog;
     private View view;
     private Bitmap coverPhoto = null;
     private EditText currentEditText;
@@ -154,6 +156,10 @@ public class Add extends Fragment implements OnFailureListener
         {
             if (mContext != null && getActivity() != null)
             {
+                addingDialog = new AlertDialog.Builder(mContext)
+                        .setCancelable(false)
+                        .setMessage(R.string.adding_text)
+                        .setIcon(R.drawable.ic_error).create();
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
                         && ContextCompat.checkSelfPermission(mContext,
                         Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
@@ -237,8 +243,33 @@ public class Add extends Fragment implements OnFailureListener
         textView.setThreshold(1);
     }
 
+    private void capturePhoto()
+    {
+        try
+        {
+            IMAGE_URI = Utils.createTemporaryFile();
+            Intent galleryIntent = new Intent(Intent.ACTION_PICK,
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            Intent appIntent = new Intent(getContext(), CameraActivity.class);
+            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            Intent chooser = new Intent(Intent.ACTION_CHOOSER);
+
+            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, IMAGE_URI);
+
+            chooser.putExtra(Intent.EXTRA_INTENT, galleryIntent);
+            chooser.putExtra(Intent.EXTRA_TITLE, getString(R.string.add_book_heading));
+            Intent[] intentArray = {cameraIntent, appIntent};
+            chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
+            startActivityForResult(chooser, capture_image);
+        } catch (IOException error)
+        {
+            onFailure(error);
+        }
+    }
+
     private void addBook(@NonNull TextView[] textViews)
     {
+        toggleAddingDialog();
         if (coverPhoto != null)
         {
             ByteArrayOutputStream biteArrayOutputStream = new ByteArrayOutputStream();
@@ -264,61 +295,10 @@ public class Add extends Fragment implements OnFailureListener
         } else addBook(textViews, null, null);
     }
 
-    private void capturePhoto()
+    private void toggleAddingDialog()
     {
-        try
-        {
-            IMAGE_URI = Utils.createTemporaryFile();
-            Intent galleryIntent = new Intent(Intent.ACTION_PICK,
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            Intent appIntent = new Intent(getContext(), CameraActivity.class);
-            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            Intent chooser = new Intent(Intent.ACTION_CHOOSER);
-
-            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, IMAGE_URI);
-
-            chooser.putExtra(Intent.EXTRA_INTENT, galleryIntent);
-            chooser.putExtra(Intent.EXTRA_TITLE, getString(R.string.add_book_heading));
-            Intent[] intentArray = {cameraIntent, appIntent};
-            chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
-            startActivityForResult(chooser, capture_image);
-        } catch (IOException error)
-        {
-            onFailure(error);
-        }
-    }
-
-    private void addBook(@NonNull TextView[] textViews, String photo, String photoRef)
-    {
-        float price = 0;
-        String price_text = textViews[3].getText().toString().trim();
-        try
-        {
-            if (!Utils.checkNull(price_text)) price = Float.parseFloat(price_text);
-        } catch (NumberFormatException error)
-        {
-            error.printStackTrace();
-        }
-
-        Book book = new Book(textViews[0].getText().toString(),
-                textViews[1].getText().toString(), textViews[2].getText().toString(),
-                photo, photoRef,
-                price);
-        book.setSavedOn(new Timestamp(new Date()));
-        db.collection("Books")
-                .add(book)
-                .addOnSuccessListener(documentReference ->
-                        Utils.showToast("Added", mContext))
-                .addOnFailureListener(error ->
-                {
-                    new AlertDialog.Builder(mContext)
-                            .setCancelable(true).setTitle("Error")
-                            .setMessage(R.string.failed_to_save_book)
-                            .setCancelable(true)
-                            .setPositiveButton("Dismiss", null)
-                            .setIcon(R.drawable.ic_error).create().show();
-                    onFailure(error);
-                });
+        if (addingDialog.isShowing()) addingDialog.dismiss();
+        else addingDialog.show();
     }
 
     /**
@@ -403,5 +383,38 @@ public class Add extends Fragment implements OnFailureListener
         }
 
         cover.setImageBitmap(coverPhoto);
+    }
+
+    private void addBook(@NonNull TextView[] textViews, String photo, String photoRef)
+    {
+        float price = 0;
+        String price_text = textViews[3].getText().toString().trim();
+        try
+        {
+            if (!Utils.checkNull(price_text)) price = Float.parseFloat(price_text);
+        } catch (NumberFormatException error)
+        {
+            error.printStackTrace();
+        }
+
+        Book book = new Book(textViews[0].getText().toString(),
+                textViews[1].getText().toString(), textViews[2].getText().toString(),
+                photo, photoRef,
+                price);
+        book.setSavedOn(new Timestamp(new Date()));
+        db.collection("Books")
+                .add(book)
+                .addOnCompleteListener((doc) -> toggleAddingDialog())
+                .addOnSuccessListener(documentReference ->
+                        Utils.showToast("Added", mContext))
+                .addOnFailureListener(error ->
+                {
+                    new AlertDialog.Builder(mContext)
+                            .setCancelable(true).setTitle("Error")
+                            .setMessage(R.string.failed_to_save_book)
+                            .setPositiveButton("Dismiss", null)
+                            .setIcon(R.drawable.ic_error).create().show();
+                    onFailure(error);
+                });
     }
 }
