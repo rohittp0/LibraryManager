@@ -305,7 +305,7 @@ public class Add extends Fragment implements OnFailureListener
                 photo, photoRef,
                 price);
         book.setSavedOn(new Timestamp(new Date()));
-        db.collection("cities")
+        db.collection("Books")
                 .add(book)
                 .addOnSuccessListener(documentReference ->
                         Utils.showToast("Added", mContext))
@@ -314,6 +314,8 @@ public class Add extends Fragment implements OnFailureListener
                     new AlertDialog.Builder(mContext)
                             .setCancelable(true).setTitle("Error")
                             .setMessage(R.string.failed_to_save_book)
+                            .setCancelable(true)
+                            .setPositiveButton("Dismiss", null)
                             .setIcon(R.drawable.ic_error).create().show();
                     onFailure(error);
                 });
