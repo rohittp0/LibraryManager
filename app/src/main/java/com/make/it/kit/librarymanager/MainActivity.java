@@ -50,7 +50,6 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
@@ -90,8 +89,6 @@ public class MainActivity extends AppCompatActivity implements
     //Algolia
     private final Client client = new Client("D77D99DE4O", "453424a3ad3532f4d5c3fb1ad2584695");
     private final Index index = client.getIndex("book_shelf");
-    @SuppressLint("UseSparseArrays")
-    private final HashMap<Integer, Book> searchedBooks = new HashMap<>();
     //Design
     private final DisplayMetrics displayMetrics = new DisplayMetrics();
     private final FragmentManager manager = this.getSupportFragmentManager();
@@ -313,7 +310,31 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public boolean onQueryTextSubmit(String s)
     {
-        if (searchedBooks.size() > 30) searchedBooks.clear();
+        if (s == null || s.isEmpty())
+        {
+            final FragmentTransaction transaction = manager.beginTransaction();
+            String name = Utils.getNameOfFragment(currentMenuItem);
+
+            switch (currentMenuItem)
+            {
+                case R.id.nav_home:
+                    transaction.replace(R.id.fragment_container, pages[0], name);
+                    break;
+                case R.id.nav_add:
+                    transaction.replace(R.id.fragment_container, pages[1], name);
+                    break;
+                case R.id.nav_profile:
+                    transaction.replace(R.id.fragment_container, pages[2], name);
+                    break;
+                case R.id.logOut:
+                    signOut();
+                default:
+                    transaction.commit();
+                    return false;
+            }
+            transaction.addToBackStack(null);
+            transaction.commit();
+        }
         return true;
     }
 
@@ -331,19 +352,13 @@ public class MainActivity extends AppCompatActivity implements
                 for (int i = 0; i < result.length(); i++)
                 {
                     JSONObject object = result.getJSONObject(0);
-                    if (searchedBooks.containsKey(object.getInt("objectID")))
-                        searchResults.add(searchedBooks.get(object.getInt("objectID")));
-                    else
-                    {
-                        Book book = new Book(object.getString("Name"),
-                                object.getString("Author"),
-                                object.getString("Category"),
-                                object.getString("Photo"),
-                                object.getString("PhotoRef"),
-                                (float) object.getDouble("Price"));
-                        searchResults.add(book);
-                        searchedBooks.put(object.getInt("objectID"), book);
-                    }
+                    Book book = new Book(object.getString("Name"),
+                            object.getString("Author"),
+                            object.getString("Category"),
+                            object.getString("Photo"),
+                            object.getString("PhotoRef"),
+                            (float) object.getDouble("Price"));
+                    searchResults.add(book);
                 }
                 This.runOnUiThread(() ->
                 {
