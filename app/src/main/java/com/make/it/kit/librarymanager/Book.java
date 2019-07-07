@@ -34,7 +34,7 @@ class Book
         setPhoto(Photo);
         setPhotoRef(PhotoRef);
         setPrice(Price);
-        if (Photo == null)
+        if (Photo == null || Photo.isEmpty())
             PhotoID = images[(int) Math.round(Math.random() * 100) % 3];
     }
 

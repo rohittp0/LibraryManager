@@ -35,6 +35,7 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.ml.vision.FirebaseVision;
@@ -50,6 +51,7 @@ import org.jetbrains.annotations.Contract;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -289,13 +291,14 @@ public class Add extends Fragment implements OnFailureListener
     private void addBook(@NonNull TextView[] textViews, String photo, String photoRef)
     {
         float price = 0;
-        String price_text = textViews[4].getText().toString().trim();
+        String price_text = textViews[3].getText().toString().trim();
         if (!price_text.isEmpty()) price = Float.parseFloat(price_text);
 
         Book book = new Book(textViews[0].getText().toString(),
                 textViews[1].getText().toString(), textViews[2].getText().toString(),
                 photo, photoRef,
                 price);
+        book.setSavedOn(new Timestamp(new Date()));
         db.collection("cities")
                 .add(book)
                 .addOnSuccessListener(documentReference ->
