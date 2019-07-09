@@ -50,7 +50,7 @@ import static android.content.Context.CAMERA_SERVICE;
 final class Utils
 {
     static final String API_KEY = "AIzaSyCvmNRcN-WGh9jy6vgHb8XM4s4D2rDdOxs";
-    static final char[] PUNCTUATIONS = {'.', ' ', '-'};
+    private static final char[] PUNCTUATIONS = {'.', ' ', '-'};
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
 
     static
@@ -161,7 +161,7 @@ final class Utils
         return false;
     }
 
-    private static void alert(CharSequence message, Context context)
+    static void alert(CharSequence message, Context context)
     {
         AlertDialog alert = new AlertDialog.Builder(context).create();
         alert.setTitle("Error");

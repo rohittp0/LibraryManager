@@ -104,8 +104,7 @@ public class Add extends Fragment implements OnFailureListener
                     // this case will occur when taking a picture with a camera
                     performCrop(IMAGE_URI);
                 }
-            } else if (requestCode == CameraActivity.SUCCESS && data.getExtras() != null)
-                performCrop((Uri) data.getExtras().get("image"));
+            }
             else if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE)
             {
                 CropImage.ActivityResult result = CropImage.getActivityResult(data);
@@ -156,10 +155,6 @@ public class Add extends Fragment implements OnFailureListener
         {
             if (mContext != null && getActivity() != null)
             {
-                addingDialog = new AlertDialog.Builder(mContext)
-                        .setCancelable(false)
-                        .setMessage(R.string.adding_text)
-                        .setIcon(R.drawable.ic_error).create();
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
                         && ContextCompat.checkSelfPermission(mContext,
                         Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
@@ -266,13 +261,24 @@ public class Add extends Fragment implements OnFailureListener
                         if (task.isSuccessful())
                             addBook(textViews,
                                     Objects.requireNonNull(task.getResult()).toString(), photoRef);
-                        else onFailure(Objects.requireNonNull(task.getException()));
+                        else
+                        {
+                            Utils.alert("Failed to save cover photo.", mContext);
+                            onFailure(Objects.requireNonNull(task.getException()));
+                        }
                     });
         } else addBook(textViews, null, null);
     }
 
     private void toggleAddingDialog()
     {
+        if (addingDialog == null)
+        {
+            addingDialog = new AlertDialog.Builder(mContext).create();
+            addingDialog.setCancelable(false);
+            addingDialog.setMessage(mContext.getString(R.string.adding_text));
+            addingDialog.setIcon(R.drawable.ic_info);
+        }
         if (addingDialog.isShowing()) addingDialog.dismiss();
         else addingDialog.show();
     }
@@ -302,11 +308,7 @@ public class Add extends Fragment implements OnFailureListener
                         Utils.showToast("Added", mContext))
                 .addOnFailureListener(error ->
                 {
-                    new AlertDialog.Builder(mContext)
-                            .setCancelable(true).setTitle("Error")
-                            .setMessage(R.string.failed_to_save_book)
-                            .setPositiveButton("Dismiss", null)
-                            .setIcon(R.drawable.ic_error).create().show();
+                    Utils.alert("Failed to add book.", mContext);
                     onFailure(error);
                 });
     }
@@ -393,8 +395,9 @@ public class Add extends Fragment implements OnFailureListener
     private void addRectangles()
     {
         if (coverPhoto == null || TextTable.isEmpty()) return;
+        Bitmap temp = coverPhoto;
         ImageView cover = view.findViewById(R.id.add_book_cover_photo);
-        Canvas canvas = new Canvas(coverPhoto);
+        Canvas canvas = new Canvas(temp);
         Paint rectPaint = new Paint();
         Paint textPaint = new Paint();
 
@@ -416,6 +419,6 @@ public class Add extends Fragment implements OnFailureListener
                     textPaint);
         }
 
-        cover.setImageBitmap(coverPhoto);
+        cover.setImageBitmap(temp);
     }
 }
