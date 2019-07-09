@@ -243,30 +243,6 @@ public class Add extends Fragment implements OnFailureListener
         textView.setThreshold(1);
     }
 
-    private void capturePhoto()
-    {
-        try
-        {
-            IMAGE_URI = Utils.createTemporaryFile();
-            Intent galleryIntent = new Intent(Intent.ACTION_PICK,
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            Intent appIntent = new Intent(getContext(), CameraActivity.class);
-            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            Intent chooser = new Intent(Intent.ACTION_CHOOSER);
-
-            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, IMAGE_URI);
-
-            chooser.putExtra(Intent.EXTRA_INTENT, galleryIntent);
-            chooser.putExtra(Intent.EXTRA_TITLE, getString(R.string.add_book_heading));
-            Intent[] intentArray = {cameraIntent, appIntent};
-            chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
-            startActivityForResult(chooser, capture_image);
-        } catch (IOException error)
-        {
-            onFailure(error);
-        }
-    }
-
     private void addBook(@NonNull TextView[] textViews)
     {
         toggleAddingDialog();
@@ -299,6 +275,64 @@ public class Add extends Fragment implements OnFailureListener
     {
         if (addingDialog.isShowing()) addingDialog.dismiss();
         else addingDialog.show();
+    }
+
+    private void addBook(@NonNull TextView[] textViews, String photo, String photoRef)
+    {
+        float price = 0;
+        String price_text = textViews[3].getText().toString().trim();
+        try
+        {
+            if (!Utils.checkNull(price_text)) price = Float.parseFloat(price_text);
+        } catch (NumberFormatException error)
+        {
+            error.printStackTrace();
+        }
+
+        Book book = new Book(Utils.format(textViews[0].getText().toString()),
+                Utils.format(textViews[1].getText().toString()),
+                Utils.format(textViews[2].getText().toString()),
+                photo, photoRef,
+                price);
+        book.setSavedOn(new Timestamp(new Date()));
+        db.collection("Books")
+                .add(book)
+                .addOnCompleteListener((doc) -> toggleAddingDialog())
+                .addOnSuccessListener(documentReference ->
+                        Utils.showToast("Added", mContext))
+                .addOnFailureListener(error ->
+                {
+                    new AlertDialog.Builder(mContext)
+                            .setCancelable(true).setTitle("Error")
+                            .setMessage(R.string.failed_to_save_book)
+                            .setPositiveButton("Dismiss", null)
+                            .setIcon(R.drawable.ic_error).create().show();
+                    onFailure(error);
+                });
+    }
+
+    private void capturePhoto()
+    {
+        try
+        {
+            IMAGE_URI = Utils.createTemporaryFile();
+            Intent galleryIntent = new Intent(Intent.ACTION_PICK,
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            Intent appIntent = new Intent(getContext(), CameraActivity.class);
+            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            Intent chooser = new Intent(Intent.ACTION_CHOOSER);
+
+            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, IMAGE_URI);
+
+            chooser.putExtra(Intent.EXTRA_INTENT, galleryIntent);
+            chooser.putExtra(Intent.EXTRA_TITLE, getString(R.string.add_book_heading));
+            Intent[] intentArray = {cameraIntent, appIntent};
+            chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
+            startActivityForResult(chooser, capture_image);
+        } catch (IOException error)
+        {
+            onFailure(error);
+        }
     }
 
     /**
@@ -383,38 +417,5 @@ public class Add extends Fragment implements OnFailureListener
         }
 
         cover.setImageBitmap(coverPhoto);
-    }
-
-    private void addBook(@NonNull TextView[] textViews, String photo, String photoRef)
-    {
-        float price = 0;
-        String price_text = textViews[3].getText().toString().trim();
-        try
-        {
-            if (!Utils.checkNull(price_text)) price = Float.parseFloat(price_text);
-        } catch (NumberFormatException error)
-        {
-            error.printStackTrace();
-        }
-
-        Book book = new Book(textViews[0].getText().toString(),
-                textViews[1].getText().toString(), textViews[2].getText().toString(),
-                photo, photoRef,
-                price);
-        book.setSavedOn(new Timestamp(new Date()));
-        db.collection("Books")
-                .add(book)
-                .addOnCompleteListener((doc) -> toggleAddingDialog())
-                .addOnSuccessListener(documentReference ->
-                        Utils.showToast("Added", mContext))
-                .addOnFailureListener(error ->
-                {
-                    new AlertDialog.Builder(mContext)
-                            .setCancelable(true).setTitle("Error")
-                            .setMessage(R.string.failed_to_save_book)
-                            .setPositiveButton("Dismiss", null)
-                            .setIcon(R.drawable.ic_error).create().show();
-                    onFailure(error);
-                });
     }
 }

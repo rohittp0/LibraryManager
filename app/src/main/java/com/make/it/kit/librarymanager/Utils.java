@@ -49,9 +49,9 @@ import static android.content.Context.CAMERA_SERVICE;
 @SuppressWarnings("unused")
 final class Utils
 {
-    private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
-
     static final String API_KEY = "AIzaSyCvmNRcN-WGh9jy6vgHb8XM4s4D2rDdOxs";
+    static final char[] PUNCTUATIONS = {'.', ' ', '-'};
+    private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
 
     static
     {
@@ -263,6 +263,20 @@ final class Utils
                 System.out.println("Bad rotation value: " + rotationCompensation);
         }
         return result;
+    }
+
+    @NonNull
+    @Contract("_ -> new")
+    static String format(String string)
+    {
+        string = string.toLowerCase().trim();
+        char[] strings = string.toCharArray();
+
+        for (int i = 0; i < strings.length; i++)
+            for (final char punctuation : PUNCTUATIONS)
+                if (punctuation == strings[i])
+                    strings[i] = (strings[i] + "").toUpperCase().charAt(0);
+        return new String(strings);
     }
 }
 
