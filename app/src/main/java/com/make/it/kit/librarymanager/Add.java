@@ -246,7 +246,7 @@ public class Add extends Fragment implements OnFailureListener
             ByteArrayOutputStream biteArrayOutputStream = new ByteArrayOutputStream();
             coverPhoto.compress(Bitmap.CompressFormat.JPEG, 100, biteArrayOutputStream);
 
-            final String photoRef = "coverPhotos";
+            final String photoRef = "coverPhotos/"+textViews[0]+'_'+textViews[1]+new Date().toString();
             StorageReference ref = storageRef.child(photoRef);
             ref.putBytes(biteArrayOutputStream.toByteArray())
                     .continueWithTask(task ->
@@ -267,6 +267,7 @@ public class Add extends Fragment implements OnFailureListener
                             onFailure(Objects.requireNonNull(task.getException()));
                         }
                     });
+            coverPhoto = null;
         } else addBook(textViews, null, null);
     }
 
@@ -304,8 +305,10 @@ public class Add extends Fragment implements OnFailureListener
         db.collection("Books")
                 .add(book)
                 .addOnCompleteListener((doc) -> toggleAddingDialog())
-                .addOnSuccessListener(documentReference ->
-                        Utils.showToast("Added", mContext))
+                .addOnSuccessListener(documentReference ->{
+                    for(TextView text :textViews) text.setText("");
+                        Utils.showToast("Added", mContext);
+                })
                 .addOnFailureListener(error ->
                 {
                     Utils.alert("Failed to add book.", mContext);

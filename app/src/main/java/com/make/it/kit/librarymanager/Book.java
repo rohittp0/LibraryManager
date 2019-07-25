@@ -6,7 +6,6 @@ import com.google.firebase.Timestamp;
 class Book
 {
     private final int[] images = {R.mipmap.cover1, R.mipmap.cover2, R.mipmap.cover3};
-    private String ID;
     private String Name;
     private String Author;
     private String Category;
@@ -110,16 +109,6 @@ class Book
     public void setPrice(float price)
     {
         Price = price;
-    }
-
-    public String getID()
-    {
-        return ID;
-    }
-
-    public void setID(String ID)
-    {
-        this.ID = ID;
     }
 
     public int getPhotoID()
