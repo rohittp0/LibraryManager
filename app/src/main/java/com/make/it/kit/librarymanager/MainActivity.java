@@ -1,7 +1,6 @@
 package com.make.it.kit.librarymanager;
 
 import android.annotation.SuppressLint;
-import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -29,13 +28,9 @@ import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.ErrorCodes;
 import com.firebase.ui.auth.FirebaseUiException;
 import com.firebase.ui.auth.IdpResponse;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 
@@ -51,7 +46,7 @@ import static java.util.Objects.requireNonNull;
 
 public class MainActivity extends AppCompatActivity implements
         SearchView.OnQueryTextListener,
-        NavigationView.OnNavigationItemSelectedListener, OnCompleteListener<QuerySnapshot>
+        NavigationView.OnNavigationItemSelectedListener
 {
     //Notification
     private static MainActivity This;
@@ -84,10 +79,9 @@ public class MainActivity extends AppCompatActivity implements
     //Design
     private final DisplayMetrics displayMetrics = new DisplayMetrics();
     private final FragmentManager manager = this.getSupportFragmentManager();
-    private final Fragment[] pages = {null, Add.newInstance(), Stats.newInstance()};
+    private final Fragment[] pages = {Home.newInstance(), Add.newInstance(), Stats.newInstance()};
     private Home searchFragment;
     private int currentMenuItem;
-    private Dialog loading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -108,20 +102,9 @@ public class MainActivity extends AppCompatActivity implements
         });
         if (auth.getCurrentUser() != null)
         {
-            init();
+            setContentView(R.layout.activity_main);
+            NavInit();
         } else startActivityForResult(signIn, RC_SIGN_IN);
-    }
-
-    private void init()
-    {
-        setContentView(R.layout.activity_main);
-        loading = new Dialog(this, R.style.Dialog_FrameLess);
-        loading.setContentView(R.layout.progressbar);
-        loading.setCancelable(false);
-        loading.setCanceledOnTouchOutside(false);
-        loading.show();
-        NavInit();
-        homeInit();
     }
 
     private void NavInit()
@@ -141,16 +124,6 @@ public class MainActivity extends AppCompatActivity implements
         drawer.addDrawerListener(toggle);
         toggle.syncState();
         statsInit();
-    }
-
-    private void homeInit()
-    {
-        if (pages[0] != null) return;
-        CollectionReference bookRef = db.collection("Books");
-        // Create a query against the collection.
-        bookRef.orderBy("SavedOn", com.google.firebase.firestore.Query.Direction.DESCENDING)
-                .limit(20).get()
-                .addOnCompleteListener(this);
     }
 
     private void statsInit()
@@ -206,7 +179,8 @@ public class MainActivity extends AppCompatActivity implements
 
             if (resultCode == RESULT_OK)
             {
-                init();
+                setContentView(R.layout.activity_main);
+                NavInit();
             } else if (response == null) startActivityForResult(signIn, RC_SIGN_IN);
             else
             {
@@ -309,7 +283,7 @@ public class MainActivity extends AppCompatActivity implements
                 }
                 This.runOnUiThread(() ->
                 {
-                    if (searchFragment == null) searchFragment = Home.newInstance(searchResults);
+                    if (searchFragment == null) searchFragment = Home.newInstance(); // TODO fix
                     else searchFragment.setData(searchResults);
                     manager.beginTransaction().replace(R.id.fragment_container,
                             searchFragment)
@@ -372,25 +346,4 @@ public class MainActivity extends AppCompatActivity implements
                 });
     }
 
-    @Override
-    public void onComplete(@NonNull Task<QuerySnapshot> task)
-    {
-        if (task.isSuccessful() && task.getResult() != null)
-        {
-            try
-            {
-                final List<Book> books = task.getResult().toObjects(Book.class);
-                pages[0] = Home.newInstance(books);
-                manager.beginTransaction()
-                        .replace(R.id.fragment_container, pages[0])
-                        .commit();
-            } catch (Exception error)
-            {
-                error.printStackTrace();
-            } finally
-            {
-                if (loading.isShowing()) loading.dismiss();
-            }
-        } else firebaseError(task.getException());
-    }
 }

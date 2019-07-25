@@ -425,7 +425,7 @@ public class Add extends Fragment implements OnFailureListener
 
         // Pattern
         // some more settings...
-        canvas.drawBitmap(coverPhoto, 0, 0, rectPaint);
+        canvas.drawBitmap(temp, 0, 0, rectPaint);
         for (Rect rect : TextTable.keySet())
         {
             canvas.drawRect(rect, rectPaint);
