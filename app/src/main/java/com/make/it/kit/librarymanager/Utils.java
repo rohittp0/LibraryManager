@@ -270,12 +270,13 @@ final class Utils
     static String format(String string)
     {
         string = string.toLowerCase().trim();
+        if(string.isEmpty()) return "";
         char[] strings = string.toCharArray();
-
-        for (int i = 0; i < strings.length; i++)
+        strings[0] = (strings[0] + "").toUpperCase().charAt(0);
+        for (int i = 0; i < strings.length-1; i++)
             for (final char punctuation : PUNCTUATIONS)
                 if (punctuation == strings[i])
-                    strings[i] = (strings[i] + "").toUpperCase().charAt(0);
+                    strings[i+1] = (strings[i+1] + "").toUpperCase().charAt(0);
         return new String(strings);
     }
 }

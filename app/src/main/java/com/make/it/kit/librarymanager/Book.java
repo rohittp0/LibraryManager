@@ -2,6 +2,9 @@ package com.make.it.kit.librarymanager;
 
 import com.google.firebase.Timestamp;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @SuppressWarnings("unused")
 class Book
 {
@@ -115,5 +118,19 @@ class Book
     {
         if (PhotoID == 944747011) PhotoID = images[(int) Math.round(Math.random() * 100) % 3];
         return PhotoID;
+    }
+
+    Map<String,Object> toMap()
+    {
+        Map<String,Object> map = new HashMap<>();
+        map.put("Name",Utils.format(getName()));
+        map.put("Author",Utils.format(getAuthor()));
+        map.put("Category",Utils.format(getCategory()));
+        map.put("Photo",getPhoto());
+        map.put("PhotoRef",getPhotoRef());
+        map.put("SavedOn",getSavedOn());
+        map.put("Price",getPrice());
+        map.put("PhotoID",getPhotoID());
+        return map;
     }
 }

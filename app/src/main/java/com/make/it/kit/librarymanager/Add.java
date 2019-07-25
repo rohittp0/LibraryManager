@@ -223,6 +223,11 @@ public class Add extends Fragment implements OnFailureListener
                 currentEditText = (EditText) v;
                 Utils.showToast("Selected", mContext);
             });
+            text.setOnKeyListener((view,code,event)->
+            {
+                text.setText(Utils.format(text.getText().toString()));
+                return false;
+            });
             text.startAnimation(AnimationUtils.loadAnimation(getContext(),
                     R.anim.zoom_in));
         }
@@ -269,7 +274,7 @@ public class Add extends Fragment implements OnFailureListener
                     {
                         if (task.isSuccessful())
                             addBook(textViews,
-                                    Objects.requireNonNull(task.getResult()).toString(), photoRef);
+                                    Objects.requireNonNull(task.getResult()).toString(), ref.getPath());
                         else
                         {
                             Utils.alert("Failed to save cover photo.", mContext);
@@ -307,14 +312,14 @@ public class Add extends Fragment implements OnFailureListener
             error.printStackTrace();
         }
 
-        Book book = new Book(Utils.format(textViews[0].getText().toString()),
-                Utils.format(textViews[1].getText().toString()),
-                Utils.format(textViews[2].getText().toString()),
+        Book book = new Book(textViews[0].getText().toString(),
+                textViews[1].getText().toString(),
+                textViews[2].getText().toString(),
                 photo, photoRef,
                 price);
         book.setSavedOn(new Timestamp(new Date()));
         db.collection("Books")
-                .add(book)
+                .add(book.toMap())
                 .addOnCompleteListener((doc) -> toggleAddingDialog())
                 .addOnSuccessListener(documentReference ->{
                     for(TextView text :textViews) text.setText("");
