@@ -238,6 +238,14 @@ public class Add extends Fragment implements OnFailureListener
         textView.setThreshold(1);
     }
 
+    @NonNull
+    @Contract("null -> !null")
+    private String toSafeFileName(TextView text)
+    {
+        if(text == null || text.getText() == null) return " ";
+        return text.getText().toString().replaceAll("/","").trim();
+    }
+
     private void addBook(@NonNull TextView[] textViews)
     {
         toggleAddingDialog();
@@ -246,7 +254,8 @@ public class Add extends Fragment implements OnFailureListener
             ByteArrayOutputStream biteArrayOutputStream = new ByteArrayOutputStream();
             coverPhoto.compress(Bitmap.CompressFormat.JPEG, 100, biteArrayOutputStream);
 
-            final String photoRef = "coverPhotos/"+textViews[0]+'_'+textViews[1]+new Date().toString();
+            final String photoRef = "coverPhotos/"+toSafeFileName(textViews[0])+'_'
+                    +toSafeFileName(textViews[1])+new Date().toString();
             StorageReference ref = storageRef.child(photoRef);
             ref.putBytes(biteArrayOutputStream.toByteArray())
                     .continueWithTask(task ->
@@ -268,6 +277,8 @@ public class Add extends Fragment implements OnFailureListener
                         }
                     });
             coverPhoto = null;
+            ImageView cover = view.findViewById(R.id.add_book_cover_photo);
+            cover.setImageBitmap(null);
         } else addBook(textViews, null, null);
     }
 
@@ -363,8 +374,6 @@ public class Add extends Fragment implements OnFailureListener
     private void getData(Bitmap image)
     {
         if (view == null) return;
-        int id = MainActivity.createNotification("Extracting Text",
-                getString(R.string.extracting_text_notification_message));
         final FirebaseVisionImage firebaseVisionImage = FirebaseVisionImage.fromBitmap(image);
         detector.processImage(firebaseVisionImage)
                 .addOnSuccessListener(result ->
@@ -380,9 +389,6 @@ public class Add extends Fragment implements OnFailureListener
                     } catch (Exception error)
                     {
                         onFailure(error);
-                    } finally
-                    {
-                        MainActivity.disposeNotification(id);
                     }
                 })
                 .addOnFailureListener(this);

@@ -2,10 +2,7 @@ package com.make.it.kit.librarymanager;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.MenuItem;
@@ -17,8 +14,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
@@ -59,10 +54,7 @@ public class MainActivity extends AppCompatActivity implements
         NavigationView.OnNavigationItemSelectedListener, OnCompleteListener<QuerySnapshot>
 {
     //Notification
-    private static final String CHANNEL_ID = "channel_id_for_library_manager";
     private static MainActivity This;
-    private static int NOTIFICATION_ID = 0;
-    private static NotificationManagerCompat notificationManager;
     //Firebase
     private final FirebaseAuth auth = FirebaseAuth.getInstance();
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -97,37 +89,11 @@ public class MainActivity extends AppCompatActivity implements
     private int currentMenuItem;
     private Dialog loading;
 
-    static int createNotification(CharSequence textTitle, CharSequence textContent)
-    {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(This, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(textTitle)
-                .setContentText(textContent)
-                .setDefaults(NotificationCompat.DEFAULT_ALL)
-                .setPriority(NotificationCompat.PRIORITY_MAX)
-                .setStyle(new NotificationCompat.BigTextStyle()
-                        .bigText(textContent));
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N)
-        {
-            builder.setPriority(NotificationManager.IMPORTANCE_HIGH);
-        }
-        // notificationId is a unique int for each notification that you must define
-        notificationManager.notify(NOTIFICATION_ID, builder.build());
-        return NOTIFICATION_ID++;
-    }
-
-    static void disposeNotification(int id)
-    {
-        if (notificationManager.areNotificationsEnabled())
-            notificationManager.cancel(id);
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         This = this;
-        notificationManager = NotificationManagerCompat.from(this);
         //Fabric.with(this, new Crashlytics()); TODO Enable This
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         remoteConfig.setConfigSettingsAsync(configSettings);
@@ -156,7 +122,6 @@ public class MainActivity extends AppCompatActivity implements
         loading.show();
         NavInit();
         homeInit();
-        createNotificationChannel();
     }
 
     private void NavInit()
@@ -186,24 +151,6 @@ public class MainActivity extends AppCompatActivity implements
         bookRef.orderBy("SavedOn", com.google.firebase.firestore.Query.Direction.DESCENDING)
                 .limit(20).get()
                 .addOnCompleteListener(this);
-    }
-
-    private void createNotificationChannel()
-    {
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-        {
-            CharSequence name = getString(R.string.channel_name);
-            String description = getString(R.string.channel_description);
-            int importance = NotificationManager.IMPORTANCE_HIGH;
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
-            channel.setDescription(description);
-            // Register the channel with the system; you can't change the importance
-            // or other notification behaviors after this
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-        }
     }
 
     private void statsInit()
