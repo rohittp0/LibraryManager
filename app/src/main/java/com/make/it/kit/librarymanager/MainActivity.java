@@ -19,11 +19,11 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.algolia.search.saas.AlgoliaException;
-import com.algolia.search.saas.Client;
-import com.algolia.search.saas.Index;
-import com.algolia.search.saas.Query;
-import com.algolia.search.saas.RequestOptions;
+//import com.algolia.search.saas.AlgoliaException;
+//import com.algolia.search.saas.Client;
+//import com.algolia.search.saas.Index;
+//import com.algolia.search.saas.Query;
+//import com.algolia.search.saas.RequestOptions;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.ErrorCodes;
 import com.firebase.ui.auth.FirebaseUiException;
@@ -34,11 +34,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig;
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -48,8 +43,6 @@ public class MainActivity extends AppCompatActivity implements
         SearchView.OnQueryTextListener,
         NavigationView.OnNavigationItemSelectedListener
 {
-    //Notification
-    private static MainActivity This;
     //Firebase
     private final FirebaseAuth auth = FirebaseAuth.getInstance();
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -74,20 +67,18 @@ public class MainActivity extends AppCompatActivity implements
                     .setMinimumFetchIntervalInSeconds(60 * 60 * 12)
                     .build();
     //Algolia
-    private final Client client = new Client("D77D99DE4O", "453424a3ad3532f4d5c3fb1ad2584695");
-    private final Index index = client.getIndex("book_shelf");
+     //private final Client client = new Client("D77D99DE4O", "453424a3ad3532f4d5c3fb1ad2584695");
+     //private final Index index = client.getIndex("book_shelf");
     //Design
     private final DisplayMetrics displayMetrics = new DisplayMetrics();
     private final FragmentManager manager = this.getSupportFragmentManager();
     private final Fragment[] pages = {Home.newInstance(), Add.newInstance(), Stats.newInstance()};
-    private Home searchFragment;
     private int currentMenuItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        This = this;
         //Fabric.with(this, new Crashlytics()); TODO Enable This
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         remoteConfig.setConfigSettingsAsync(configSettings);
@@ -109,6 +100,8 @@ public class MainActivity extends AppCompatActivity implements
 
     private void NavInit()
     {
+        manager.beginTransaction().add(R.id.fragment_container,pages[0],"home").commit();
+
         Toolbar toolbar = findViewById(R.id.toolBar);
         setSupportActionBar(toolbar);
 
@@ -211,8 +204,6 @@ public class MainActivity extends AppCompatActivity implements
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START))
             drawer.closeDrawer(GravityCompat.START);
-        else if (manager.findFragmentByTag(Utils.getNameOfFragment(currentMenuItem)) != null)
-            manager.popBackStack(Utils.getNameOfFragment(currentMenuItem), 0);
         else super.onBackPressed();
     }
 
@@ -231,6 +222,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public boolean onQueryTextSubmit(String s)
     {
+        /*
         if (s == null || s.isEmpty())
         {
             final FragmentTransaction transaction = manager.beginTransaction();
@@ -256,12 +248,14 @@ public class MainActivity extends AppCompatActivity implements
             transaction.addToBackStack(null);
             transaction.commit();
         }
+        */
         return true;
     }
 
     @Override
     public boolean onQueryTextChange(String s)
     {
+        /*
         if (s == null || s.length() <= 0 || !Utils.isConnected(this)) return true;
         new Thread(() ->
         {
@@ -298,6 +292,7 @@ public class MainActivity extends AppCompatActivity implements
                 //Crashlytics.logException(error);
             }
         }).start();
+        */
         return true;
     }
 

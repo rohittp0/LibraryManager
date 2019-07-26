@@ -19,8 +19,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.jetbrains.annotations.Contract;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public class Home extends Fragment implements SwipeRefreshLayout.OnRefreshListener
 {
@@ -30,7 +28,6 @@ public class Home extends Fragment implements SwipeRefreshLayout.OnRefreshListen
 
     private View view;
     private RecyclerView recyclerView;
-    private RecyclerViewAdapter adapter;
     private SwipeRefreshLayout swipe;
 
     @NonNull
@@ -55,8 +52,7 @@ public class Home extends Fragment implements SwipeRefreshLayout.OnRefreshListen
         if (recyclerView.getLayoutManager() == null)
             recyclerView.setLayoutManager(new GridLayoutManager(getActivity(), getCount(view)));
 
-        if (recyclerView.getAdapter() == null) swipe.post(this::onRefresh);
-        else recyclerView.setAdapter(adapter);
+        if(recyclerView.getAdapter() == null) swipe.post(this::onRefresh);
 
         return view;
     }
@@ -85,11 +81,6 @@ public class Home extends Fragment implements SwipeRefreshLayout.OnRefreshListen
         return cols > 0 ? cols : 1;
     }
 
-    void setData(ArrayList<Book> books)
-    {
-        adapter.setData(books);
-    }
-
     /**
      * Called when a swipe gesture triggers a refresh.
      */
@@ -104,23 +95,14 @@ public class Home extends Fragment implements SwipeRefreshLayout.OnRefreshListen
                 .addOnCompleteListener((task) ->
                 {
                     if (task.isSuccessful() && task.getResult() != null)
-                    {
-                        try
-                        {
-                            final List<Book> books = task.getResult().toObjects(Book.class);
-                            adapter = new RecyclerViewAdapter(getContext(), books);
-                            recyclerView.setAdapter(adapter);
-                        } catch (Exception error)
-                        {
-                            firebaseError(error);
-                        }
-                    } else firebaseError(task.getException());
+                        recyclerView.setAdapter(new RecyclerViewAdapter(getContext(), task.getResult().toObjects(Book.class)));
+                    else firebaseError(task.getException());
                     swipe.setRefreshing(false);
                 });
     }
 
     private void firebaseError(@Nullable Exception error)
     {
-        if(error != null) error.printStackTrace(); //TODO add crashlytics
+        if (error != null) error.printStackTrace(); //TODO add crashlytics
     }
 }
