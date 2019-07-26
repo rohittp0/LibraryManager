@@ -30,7 +30,6 @@ import java.util.Locale;
  * Use the {@link Stats#newInstance} factory method to
  * create an instance of this fragment.
  */
-@SuppressWarnings("WeakerAccess")
 public class Stats extends Fragment
 {
     private View view;
@@ -119,7 +118,7 @@ public class Stats extends Fragment
     private void updateChart(@NonNull BarChart chart, @NonNull List<List> data, String label)
     {
         chart.getXAxis().setValueFormatter(new IndexAxisValueFormatter(data.get(1)));
-        final BarDataSet dataSet = new BarDataSet(data.get(0), label);
+        final BarDataSet dataSet = new BarDataSet(data.get(0), "");
         dataSet.setColors(ColorTemplate.MATERIAL_COLORS);
         chart.setData(new BarData(dataSet));
         chart.invalidate();
