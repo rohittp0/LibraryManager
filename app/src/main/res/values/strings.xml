@@ -45,4 +45,5 @@
     <string name="failed_to_save_book">Failed to add the book.</string>
     <string name="book_pop_up_edit_button_text">Edit</string>
     <string name="book_pop_up_delete_button_text">Delete</string>
+    <string name="delete_prompt">"Are you sure you want to delete this Book ?"</string>
 </resources>

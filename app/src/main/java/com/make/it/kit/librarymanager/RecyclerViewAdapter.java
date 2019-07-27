@@ -9,9 +9,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.button.MaterialButton;
 import com.squareup.picasso.Picasso;
 
 import java.text.NumberFormat;
@@ -51,11 +53,13 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         holder.cardView.setOnClickListener(v ->
         {
 
-            TextView author = popup.findViewById(R.id.book_popup_author);
-            TextView category = popup.findViewById(R.id.book_popup_category);
-            TextView price = popup.findViewById(R.id.book_popup_price);
-            TextView name = popup.findViewById(R.id.book_popup_name);
-            ImageView cover = popup.findViewById(R.id.book_popup_cover_photo);
+            final TextView author = popup.findViewById(R.id.book_popup_author);
+            final TextView category = popup.findViewById(R.id.book_popup_category);
+            final TextView price = popup.findViewById(R.id.book_popup_price);
+            final TextView name = popup.findViewById(R.id.book_popup_name);
+            final ImageView cover = popup.findViewById(R.id.book_popup_cover_photo);
+            final MaterialButton edit = popup.findViewById(R.id.book_popup_edit);
+            final MaterialButton delete = popup.findViewById(R.id.book_popup_delete);
 
             NumberFormat formatter = NumberFormat.getNumberInstance();
             formatter.setMinimumFractionDigits(2);
@@ -68,8 +72,22 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                     formatter.format(cBook.getPrice())));
             cover.setImageDrawable(holder.img.getDrawable());
 
+            edit.setOnClickListener((view) ->
+            {
+            });
+            delete.setOnClickListener((view) ->
+                    new AlertDialog.Builder(mContext)
+                            .setMessage(R.string.delete_prompt)
+                            .setPositiveButton("Yes", (dialogInterface, index) ->
+                            {
+                            })
+                            .setNegativeButton("No", (dialogInterface, index) ->
+                                    dialogInterface.dismiss())
+                            .create().show());
+
             popup.show();
         });
+
     }
 
     @Override
