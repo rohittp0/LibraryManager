@@ -7,4 +7,6 @@
     <color name="colorAccent">#AB47BC</color>
     <color name="white">#FFFFFF</color>
     <color name="transparent">#0000</color>
+    <color name="alertRed">#FF0000</color>
+    <color name="positiveBlue">#1976D2</color>
 </resources>

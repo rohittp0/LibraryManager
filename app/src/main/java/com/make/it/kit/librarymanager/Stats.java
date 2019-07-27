@@ -9,18 +9,22 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
-import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.ColorTemplate;
 
 import org.jetbrains.annotations.Contract;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 
 /**
@@ -83,6 +87,7 @@ public class Stats extends Fragment
         return view;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
     {
@@ -92,8 +97,8 @@ public class Stats extends Fragment
         HorizontalScrollView cards = view.findViewById(R.id.stats_cards_scrollView);
         cards.post(() -> cards.smoothScrollTo(view.findViewById(R.id.book_count).getWidth(), 0));
 
-        initChart(AuthorChart);
-        initChart(CategoryChart);
+        initChart(AuthorChart, Authors.get(1) ,"Author Details.");
+        initChart(CategoryChart, Categories.get(1) , "Category Details.");
 
         if (Authors != null)
             updateChart(AuthorChart, Authors, "Authors");
@@ -103,22 +108,51 @@ public class Stats extends Fragment
         super.onViewCreated(view, savedInstanceState);
     }
 
-    private void initChart(@NonNull BarChart chart)
+    private void initChart(@NonNull BarChart chart, List<String> dataSet , String popUpTitle)
     {
         chart.setDrawValueAboveBar(true);
         chart.getDescription().setEnabled(false);
         chart.getXAxis().setDrawGridLines(false);
+        chart.getXAxis().setDrawLabels(false);
         chart.setDrawGridBackground(false);
         chart.setFitBars(true);
+        chart.setHighlightPerDragEnabled(false);
         chart.animateXY(1000, 1000);
         chart.setNoDataText("Loading...");
+        chart.setOnChartValueSelectedListener(new OnChartValueSelectedListener()
+        {
+            /**
+             * Called when a value has been selected inside the chart.
+             *
+             * @param e The selected Entry
+             * @param h The corresponding highlight object that contains information
+             */
+            @Override
+            public void onValueSelected(Entry e, Highlight h)
+            {
+                int index = (int) h.getX();
+                final AlertDialog alert = new AlertDialog.Builder(Objects.requireNonNull(getContext()))
+                        .create();
+                alert.setMessage(dataSet.get(index) + "  " + (int)h.getY() + " Books");
+                alert.setTitle(popUpTitle);
+                alert.show();
+            }
+
+            /**
+             * Called when nothing has been selected or an "un-select" has been made.
+             */
+            @Override
+            public void onNothingSelected()
+            {
+
+            }
+        });
     }
 
     @SuppressWarnings("unchecked")
     private void updateChart(@NonNull BarChart chart, @NonNull List<List> data, String label)
     {
-        chart.getXAxis().setValueFormatter(new IndexAxisValueFormatter(data.get(1)));
-        final BarDataSet dataSet = new BarDataSet(data.get(0), "");
+        final BarDataSet dataSet = new BarDataSet(data.get(0), label);
         dataSet.setColors(ColorTemplate.MATERIAL_COLORS);
         chart.setData(new BarData(dataSet));
         chart.invalidate();

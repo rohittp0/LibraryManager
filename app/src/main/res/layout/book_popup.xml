@@ -75,6 +75,29 @@
                 android:textColor="@color/colorPrimaryDark"
                 android:textSize="18sp" />
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:layout_gravity="center_horizontal"
+                android:padding="3dp"
+                >
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="5dp"
+                    android:textAlignment="center"
+                    app:backgroundTint="@color/positiveBlue"
+                    android:text="@string/book_pop_up_edit_button_text"/>
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:textAlignment="center"
+                    app:backgroundTint="@color/alertRed"
+                    android:text="@string/book_pop_up_delete_button_text"/>
+            </LinearLayout>
+
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
