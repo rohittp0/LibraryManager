@@ -34,6 +34,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         popup = new Dialog(mContext, R.style.Dialog_FrameLess);
         popup.setContentView(R.layout.book_popup);
         editWindow = new Dialog(mContext, R.style.Dialog_FrameLess);
+        editWindow.setContentView(R.layout.edit_window);
+        editWindow.setCancelable(false);
     }
 
     @NonNull
@@ -73,11 +75,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             price.setText(mContext.getString(R.string.book_popup_rupee_sign,
                     formatter.format(cBook.getPrice())));
             cover.setImageDrawable(holder.img.getDrawable());
-
-            edit.setOnClickListener((view) ->
-            {
-
-            });
+            edit.setOnClickListener((view) -> startEdit(cBook));
             delete.setOnClickListener((view) ->
                     new AlertDialog.Builder(mContext)
                             .setMessage(R.string.delete_prompt)
@@ -96,6 +94,11 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             popup.show();
         });
 
+    }
+
+    private void startEdit(Book cBook)
+    {
+        editWindow.show();
     }
 
     @Override
