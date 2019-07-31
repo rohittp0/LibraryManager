@@ -56,7 +56,7 @@ public class Home extends Fragment implements SwipeRefreshLayout.OnRefreshListen
         if (recyclerView.getLayoutManager() == null)
             recyclerView.setLayoutManager(new GridLayoutManager(getActivity(), getCount(view)));
 
-        if(recyclerView.getAdapter() == null) swipe.post(this::onRefresh);
+        if (recyclerView.getAdapter() == null) swipe.post(this::onRefresh);
 
         return view;
     }
