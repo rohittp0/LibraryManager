@@ -15,9 +15,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.jetbrains.annotations.Contract;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class Home extends Fragment implements SwipeRefreshLayout.OnRefreshListener
@@ -95,8 +99,20 @@ public class Home extends Fragment implements SwipeRefreshLayout.OnRefreshListen
                 .addOnCompleteListener((task) ->
                 {
                     if (task.isSuccessful() && task.getResult() != null)
-                        recyclerView.setAdapter(new RecyclerViewAdapter(getContext(), task.getResult().toObjects(Book.class)));
-                    else firebaseError(task.getException());
+                    {
+                        final List<DocumentSnapshot> documents = task.getResult().getDocuments();
+                        final List<Book> books = new ArrayList<>();
+                        for (int i = 0; i < documents.size(); i++)
+                        {
+                            final Book book = documents.get(i).toObject(Book.class);
+                            if (book != null)
+                            {
+                                book.setSelfRef(documents.get(i).getReference());
+                                books.add(book);
+                            }
+                        }
+                        recyclerView.setAdapter(new RecyclerViewAdapter(getContext(), books));
+                    } else firebaseError(task.getException());
                     swipe.setRefreshing(false);
                 });
     }
