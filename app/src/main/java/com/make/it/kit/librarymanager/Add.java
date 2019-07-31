@@ -339,7 +339,6 @@ public class Add extends Fragment implements OnFailureListener
             IMAGE_URI = Utils.createTemporaryFile();
             Intent galleryIntent = new Intent(Intent.ACTION_PICK,
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            Intent appIntent = new Intent(getContext(), CameraActivity.class);
             Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             Intent chooser = new Intent(Intent.ACTION_CHOOSER);
 
@@ -347,8 +346,8 @@ public class Add extends Fragment implements OnFailureListener
 
             chooser.putExtra(Intent.EXTRA_INTENT, galleryIntent);
             chooser.putExtra(Intent.EXTRA_TITLE, getString(R.string.add_book_heading));
-            Intent[] intentArray = {cameraIntent, appIntent};
-            chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
+            //Intent[] intentArray = {cameraIntent};
+            chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, cameraIntent);
             startActivityForResult(chooser, capture_image);
         } catch (IOException error)
         {

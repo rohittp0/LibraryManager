@@ -74,13 +74,19 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
             edit.setOnClickListener((view) ->
             {
+
             });
             delete.setOnClickListener((view) ->
                     new AlertDialog.Builder(mContext)
                             .setMessage(R.string.delete_prompt)
                             .setPositiveButton("Yes", (dialogInterface, index) ->
-                            {
-                            })
+                                    cBook.getSelfRef().delete()
+                                            .addOnSuccessListener(aVoid ->
+                                                    Utils.showToast("Book successfully deleted!"
+                                                            , mContext))
+                                            .addOnFailureListener((error) ->
+                                                    Utils.alert("Unable to delete Book."
+                                                            , mContext)))
                             .setNegativeButton("No", (dialogInterface, index) ->
                                     dialogInterface.dismiss())
                             .create().show());

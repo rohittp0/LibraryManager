@@ -1,6 +1,7 @@
 package com.make.it.kit.librarymanager;
 
 import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.DocumentReference;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +15,7 @@ class Book
     private String Category;
     private String Photo;
     private String PhotoRef;
+    private DocumentReference SelfRef;
     private Timestamp SavedOn;
     private float Price;
     private int PhotoID = 944747011;
@@ -132,5 +134,15 @@ class Book
         map.put("Price",getPrice());
         map.put("PhotoID",getPhotoID());
         return map;
+    }
+
+    public DocumentReference getSelfRef()
+    {
+        return SelfRef;
+    }
+
+    public void setSelfRef(DocumentReference selfRef)
+    {
+        SelfRef = selfRef;
     }
 }
