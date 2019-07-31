@@ -3,11 +3,12 @@ package com.make.it.kit.librarymanager;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentReference;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 @SuppressWarnings("unused")
-class Book
+class Book implements Serializable
 {
     private final int[] images = {R.mipmap.cover1, R.mipmap.cover2, R.mipmap.cover3};
     private String Name;

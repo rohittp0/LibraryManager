@@ -2,6 +2,7 @@ package com.make.it.kit.librarymanager;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,10 +23,10 @@ import java.util.List;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.viewHolder>
 {
+    static final String CURRENT_BOOK = "com.make.it.kit.currentBook";
     private final Context mContext;
     private List<Book> mData;
     private final Dialog popup;
-    private final Dialog editWindow;
 
     RecyclerViewAdapter(Context mContext, List<Book> books)
     {
@@ -33,9 +34,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         this.mData = books;
         popup = new Dialog(mContext, R.style.Dialog_FrameLess);
         popup.setContentView(R.layout.book_popup);
-        editWindow = new Dialog(mContext, R.style.Dialog_FrameLess);
-        editWindow.setContentView(R.layout.edit_window);
-        editWindow.setCancelable(false);
     }
 
     @NonNull
@@ -75,15 +73,23 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             price.setText(mContext.getString(R.string.book_popup_rupee_sign,
                     formatter.format(cBook.getPrice())));
             cover.setImageDrawable(holder.img.getDrawable());
-            edit.setOnClickListener((view) -> startEdit(cBook));
+            edit.setOnClickListener((view) ->
+            {
+                Intent intent = new Intent(mContext, EditWindow.class);
+                intent.putExtra(CURRENT_BOOK, cBook);
+                mContext.startActivity(intent);
+            });
             delete.setOnClickListener((view) ->
                     new AlertDialog.Builder(mContext)
                             .setMessage(R.string.delete_prompt)
                             .setPositiveButton("Yes", (dialogInterface, index) ->
                                     cBook.getSelfRef().delete()
-                                            .addOnSuccessListener(aVoid ->
+                                            .addOnSuccessListener(Null ->
+                                            {
                                                     Utils.showToast("Book successfully deleted!"
-                                                            , mContext))
+                                                            , mContext);
+                                                dialogInterface.dismiss();
+                                            })
                                             .addOnFailureListener((error) ->
                                                     Utils.alert("Unable to delete Book."
                                                             , mContext)))
@@ -94,11 +100,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             popup.show();
         });
 
-    }
-
-    private void startEdit(Book cBook)
-    {
-        editWindow.show();
     }
 
     @Override
