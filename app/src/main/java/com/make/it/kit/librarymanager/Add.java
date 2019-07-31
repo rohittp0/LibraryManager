@@ -346,8 +346,8 @@ public class Add extends Fragment implements OnFailureListener
 
             chooser.putExtra(Intent.EXTRA_INTENT, galleryIntent);
             chooser.putExtra(Intent.EXTRA_TITLE, getString(R.string.add_book_heading));
-            //Intent[] intentArray = {cameraIntent};
-            chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, cameraIntent);
+            Intent[] intentArray = {cameraIntent};
+            chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
             startActivityForResult(chooser, capture_image);
         } catch (IOException error)
         {
