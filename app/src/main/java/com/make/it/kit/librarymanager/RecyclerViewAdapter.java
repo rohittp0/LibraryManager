@@ -18,7 +18,6 @@ import com.google.android.material.button.MaterialButton;
 import com.squareup.picasso.Picasso;
 
 import java.text.NumberFormat;
-import java.util.ArrayList;
 import java.util.List;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.viewHolder>
@@ -106,12 +105,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     public int getItemCount()
     {
         return mData == null ? 0 : mData.size();
-    }
-
-    void setData(ArrayList<Book> books)
-    {
-        mData = books;
-        notifyDataSetChanged();
     }
 
     static class viewHolder extends RecyclerView.ViewHolder
