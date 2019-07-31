@@ -25,6 +25,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     private final Context mContext;
     private List<Book> mData;
     private final Dialog popup;
+    private final Dialog editWindow;
 
     RecyclerViewAdapter(Context mContext, List<Book> books)
     {
@@ -32,6 +33,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         this.mData = books;
         popup = new Dialog(mContext, R.style.Dialog_FrameLess);
         popup.setContentView(R.layout.book_popup);
+        editWindow = new Dialog(mContext, R.style.Dialog_FrameLess);
     }
 
     @NonNull
