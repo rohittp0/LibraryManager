@@ -28,6 +28,7 @@
     <string name="book_popup_rupee_sign">₹ %1$s</string>
     <string name="loading_text">Loading…</string>
     <string name="adding_text">Adding…</string>
+    <string name="saving_text">Saving…</string>
     <string name="channel_name">notification_channel_944</string>
     <string name="channel_description">The notification channel for Library-Manager.</string>
     <string name="extracting_text_notification_message">Please fill out price and category information while the Name and Author are being extracted from the image.</string>

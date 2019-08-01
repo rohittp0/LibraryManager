@@ -1,6 +1,8 @@
 package com.make.it.kit.librarymanager;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -13,8 +15,14 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AnimationUtils;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,38 +31,175 @@ import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.ml.vision.FirebaseVision;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.google.firebase.ml.vision.text.FirebaseVisionText;
 import com.google.firebase.ml.vision.text.FirebaseVisionTextRecognizer;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class EditWindow extends AppCompatActivity implements View.OnClickListener, OnFailureListener
+public class EditWindow extends AppCompatActivity implements View.OnClickListener, OnFailureListener, View.OnTouchListener
 {
-    private static Uri IMAGE_URI;
-    private Book cBook;
     private final FirebaseVisionTextRecognizer detector = FirebaseVision.getInstance()
             .getOnDeviceTextRecognizer();
-    private final Map<Rect, String> TextTable = new HashMap<>();
-    private int request_permission = 9447;
-    private int capture_image = 1233;
-    private Bitmap coverPhoto;
+    private static Uri IMAGE_URI;
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
+    private final Map<Rect, String> TextTable = new HashMap<>();
+    private final StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+
+    private Bitmap coverPhoto;
+    private final int capture_image = 1233;
+    private AlertDialog addingDialog;
+    private EditText currentEditText;
+    private boolean imageChanged = false;
+    private String deleteRef = null;
+
+    @SuppressWarnings("unchecked")
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_window);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
-        cBook = (Book) getIntent().getSerializableExtra(RecyclerViewAdapter.CURRENT_BOOK);
+        EditText[] textViews =
+                {
+                        findViewById(R.id.edit_book_name),
+                        findViewById(R.id.edit_book_author),
+                        findViewById(R.id.edit_book_price),
+                        findViewById(R.id.edit_book_category)
+                };
+        initTextView(textViews);
+
+        final DocumentReference bookRef = db.document(Objects.requireNonNull(
+                Objects.requireNonNull(getIntent().getExtras())
+                        .getString(RecyclerViewAdapter.CURRENT_BOOK)));
+
+        bookRef.get().addOnCompleteListener((snapshotTask) ->
+        {
+            final Book book = Objects.requireNonNull(snapshotTask.getResult()).toObject(Book.class);
+            if (book == null || !snapshotTask.getResult().exists())
+                throw new NullPointerException("No such book exists.");
+            deleteRef = book.getPhotoRef();
+            book.toScreen(textViews, findViewById(R.id.edit_book_cover_photo), this);
+        })
+                .addOnFailureListener(this);
         MaterialButton cover = findViewById(R.id.edit_select_cover_photo);
         cover.setOnClickListener(this);
+
+        MaterialButton save = findViewById(R.id.edit_book_submit_button);
+        save.setOnClickListener((view) ->
+        {
+            if (Utils.checkNull(textViews[0].getText().toString()))
+                Utils.showToast("Please enter a name.", this);
+            else if (Utils.checkNull(textViews[1].getText().toString()))
+                Utils.showToast("Author's name can't be empty.", this);
+            else if (Utils.checkNull(textViews[3].getText().toString()))
+                Utils.showToast("Please enter a category", this);
+            else addBook(textViews, bookRef);
+        });
+
+        db.collection("stats")
+                .document("Book_Props").get().addOnCompleteListener(task ->
+        {
+            final DocumentSnapshot bookProps = Objects.requireNonNull(task.getResult());
+            initAutoCompleteEditText(R.id.edit_book_author, (List<String>) bookProps.get("Authors"));
+            initAutoCompleteEditText(R.id.edit_book_category, (List<String>) bookProps.get("Categories"));
+        }).addOnFailureListener(this);
+
+        findViewById(R.id.edit_book_cover_photo).setOnTouchListener(this);
+    }
+
+    private void addBook(@NonNull TextView[] textViews, DocumentReference bookRef)
+    {
+        toggleSavingDialog();
+        final Map<String, Object> map = new HashMap<>();
+        map.put("Name", textViews[0].getText());
+        map.put("Author", textViews[1].getText());
+        map.put("Price", textViews[2].getText());
+        map.put("Category", textViews[3].getText());
+        if (imageChanged)
+        {
+            if (deleteRef != null)
+                FirebaseStorage.getInstance().getReference(deleteRef)
+                        .delete().addOnFailureListener(this);
+
+            ByteArrayOutputStream biteArrayOutputStream = new ByteArrayOutputStream();
+            coverPhoto.compress(Bitmap.CompressFormat.JPEG, 100, biteArrayOutputStream);
+
+            final String photoRef = "coverPhotos/" + Utils.toSafeFileName(textViews[0]) + '_'
+                    + Utils.toSafeFileName(textViews[1]) + new Date().toString();
+            StorageReference ref = storageRef.child(photoRef);
+            map.put("PhotoRef", ref.getPath());
+            ref.putBytes(biteArrayOutputStream.toByteArray())
+                    .continueWithTask(task ->
+                    {
+                        if (!task.isSuccessful())
+                            throw Objects.requireNonNull(task.getException());
+                        // Continue with the task to get the download URL
+                        return ref.getDownloadUrl();
+                    })
+                    .addOnCompleteListener(task ->
+                    {
+                        toggleSavingDialog();
+                        if (task.isSuccessful() && task.getResult() != null)
+                        {
+                            map.put("Photo", task.getResult().toString());
+                            bookRef.update(map);
+                            Utils.showToast("Saved.", this);
+                            finish();
+                        } else
+                        {
+                            Utils.alert("Failed to save cover photo.", this);
+                            onFailure(Objects.requireNonNull(task.getException()));
+                        }
+                    });
+        } else
+        {
+            bookRef.update(map);
+            toggleSavingDialog();
+            Utils.showToast("Saved.", this);
+            finish();
+        }
+    }
+
+    private void initAutoCompleteEditText(int id, List<String> options)
+    {
+        // Get a reference to the AutoCompleteTextView in the layout
+        AutoCompleteTextView textView = findViewById(id);
+        // Create the adapter and set it to the AutoCompleteTextView
+        textView.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_list_item_1, options));
+        textView.setThreshold(1);
+    }
+
+    private void initTextView(@NonNull EditText[] textViews)
+    {
+        for (TextView text : textViews)
+        {
+            text.setOnClickListener(v ->
+            {
+                currentEditText = (EditText) v;
+                Utils.showToast("Selected", this);
+            });
+            text.setOnFocusChangeListener((view, bool) ->
+                    text.setText(Utils.format(text.getText().toString())));
+            text.startAnimation(AnimationUtils.loadAnimation(this,
+                    R.anim.zoom_in));
+        }
     }
 
     @Override
@@ -72,6 +217,7 @@ public class EditWindow extends AppCompatActivity implements View.OnClickListene
     @Override
     public void onClick(View v)
     {
+        int request_permission = 9447;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
                 && ContextCompat.checkSelfPermission(this,
                 Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
@@ -100,7 +246,7 @@ public class EditWindow extends AppCompatActivity implements View.OnClickListene
             startActivityForResult(chooser, capture_image);
         } catch (IOException error)
         {
-            error.printStackTrace(); //TODO: Add crashlytics
+            onFailure(error);
         }
     }
 
@@ -129,11 +275,11 @@ public class EditWindow extends AppCompatActivity implements View.OnClickListene
                     coverPhoto = Utils.scaleToFit(MediaStore.Images.Media.getBitmap(
                             getContentResolver(),
                             result.getUri()),
-                            null);
+                            findViewById(R.id.edit_parent_container));
                     new Thread(() -> getData(coverPhoto)).run();
                 } catch (IOException error)
                 {
-                    error.printStackTrace(); //TODO: add crashlytics
+                    onFailure(error);
                 }
             }
     }
@@ -184,7 +330,7 @@ public class EditWindow extends AppCompatActivity implements View.OnClickListene
     {
         if (coverPhoto == null || TextTable.isEmpty()) return;
         Bitmap temp = coverPhoto;
-        ImageView cover = findViewById(R.id.add_book_cover_photo);
+        ImageView cover = findViewById(R.id.edit_book_cover_photo);
         Canvas canvas = new Canvas(temp);
         Paint rectPaint = new Paint();
         Paint textPaint = new Paint();
@@ -208,11 +354,53 @@ public class EditWindow extends AppCompatActivity implements View.OnClickListene
         }
 
         cover.setImageBitmap(temp);
+        imageChanged = true;
+    }
+
+    private void toggleSavingDialog()
+    {
+        if (addingDialog == null)
+        {
+            addingDialog = new AlertDialog.Builder(this).create();
+            addingDialog.setCancelable(false);
+            addingDialog.setMessage(getString(R.string.saving_text));
+            addingDialog.setIcon(R.drawable.ic_info);
+        }
+        if (addingDialog.isShowing()) addingDialog.dismiss();
+        else addingDialog.show();
     }
 
     @Override
     public void onFailure(@NonNull Exception error)
     {
         error.printStackTrace(); //TODO add crashlytics.
+    }
+
+    /**
+     * Called when a touch event is dispatched to a view. This allows listeners to
+     * get a chance to respond before the target view.
+     *
+     * @param v     The view the touch event has been dispatched to.
+     * @param event The MotionEvent object containing full information about
+     *              the event.
+     * @return True if the listener has consumed the event, false otherwise.
+     */
+    @SuppressLint("ClickableViewAccessibility")
+    @Override
+    public boolean onTouch(View v, MotionEvent event)
+    {
+        if (event.getAction() == MotionEvent.ACTION_DOWN && currentEditText != null)
+        {
+            for (Rect rect : TextTable.keySet())
+                if (Utils.isInside(event, rect))
+                {
+                    currentEditText.setText(String.format("%s %s", currentEditText.getText(),
+                            TextTable.get(rect)));
+                    currentEditText = null;
+                    Utils.showToast("Copied", this);
+                    break;
+                }
+        }
+        return false;
     }
 }

@@ -182,7 +182,7 @@ public class Add extends Fragment implements OnFailureListener
             return false;
         });
 
-        final TextView[] textViews = {
+        final EditText[] textViews = {
                 view.findViewById(R.id.add_book_name),
                 view.findViewById(R.id.add_book_author),
                 view.findViewById(R.id.add_book_category),
@@ -214,7 +214,7 @@ public class Add extends Fragment implements OnFailureListener
         return view;
     }
 
-    private void initTextView(@NonNull TextView[] textViews)
+    private void initTextView(@NonNull EditText[] textViews)
     {
         for (TextView text : textViews)
         {
@@ -223,11 +223,8 @@ public class Add extends Fragment implements OnFailureListener
                 currentEditText = (EditText) v;
                 Utils.showToast("Selected", mContext);
             });
-            text.setOnKeyListener((view,code,event)->
-            {
-                text.setText(Utils.format(text.getText().toString()));
-                return false;
-            });
+            text.setOnFocusChangeListener((view, bool) ->
+                    text.setText(Utils.format(text.getText().toString())));
             text.startAnimation(AnimationUtils.loadAnimation(getContext(),
                     R.anim.zoom_in));
         }
@@ -243,14 +240,6 @@ public class Add extends Fragment implements OnFailureListener
         textView.setThreshold(1);
     }
 
-    @NonNull
-    @Contract("null -> !null")
-    private String toSafeFileName(TextView text)
-    {
-        if(text == null || text.getText() == null) return " ";
-        return text.getText().toString().replaceAll("/","").trim();
-    }
-
     private void addBook(@NonNull TextView[] textViews)
     {
         toggleAddingDialog();
@@ -259,8 +248,8 @@ public class Add extends Fragment implements OnFailureListener
             ByteArrayOutputStream biteArrayOutputStream = new ByteArrayOutputStream();
             coverPhoto.compress(Bitmap.CompressFormat.JPEG, 100, biteArrayOutputStream);
 
-            final String photoRef = "coverPhotos/"+toSafeFileName(textViews[0])+'_'
-                    +toSafeFileName(textViews[1])+new Date().toString();
+            final String photoRef = "coverPhotos/" + Utils.toSafeFileName(textViews[0]) + '_'
+                    + Utils.toSafeFileName(textViews[1]) + new Date().toString();
             StorageReference ref = storageRef.child(photoRef);
             ref.putBytes(biteArrayOutputStream.toByteArray())
                     .continueWithTask(task ->
@@ -272,9 +261,9 @@ public class Add extends Fragment implements OnFailureListener
                     })
                     .addOnCompleteListener(task ->
                     {
-                        if (task.isSuccessful())
+                        if (task.isSuccessful() && task.getResult() != null)
                             addBook(textViews,
-                                    Objects.requireNonNull(task.getResult()).toString(), ref.getPath());
+                                    task.getResult().toString(), ref.getPath());
                         else
                         {
                             Utils.alert("Failed to save cover photo.", mContext);

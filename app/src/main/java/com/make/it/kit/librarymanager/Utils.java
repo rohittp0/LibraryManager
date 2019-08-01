@@ -88,7 +88,15 @@ final class Utils
         return string == null || string.isEmpty() || string.trim().length() <= 0 || string.toLowerCase().trim().equals("null");
     }
 
-    static Bitmap scaleToFit(Bitmap img, View view)
+    @NonNull
+    @Contract("null -> !null")
+    static String toSafeFileName(TextView text)
+    {
+        if (text == null || text.getText() == null) return " ";
+        return text.getText().toString().replaceAll("/", "").trim();
+    }
+
+    static Bitmap scaleToFit(Bitmap img, @NonNull View view)
     {
         return Bitmap.createScaledBitmap(img, getSize(view)[0] - 5, getSize(view)[1] - 5, false);
     }
@@ -101,6 +109,8 @@ final class Utils
      *
      * @return An int array containing width and height.
      */
+    @NonNull
+    @Contract("null -> fail")
     private static int[] getSize(View view)
     {
         if (view == null) throw new IllegalArgumentException("View can't be null");

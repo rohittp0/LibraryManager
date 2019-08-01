@@ -1,9 +1,18 @@
 package com.make.it.kit.librarymanager;
 
+import android.content.Context;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentReference;
+import com.squareup.picasso.Picasso;
 
 import java.io.Serializable;
+import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,6 +56,31 @@ class Book implements Serializable
     {
     }
 
+    /**
+     * This function loads the properties of this Book to provided fields.
+     *
+     * @param textViews Array in the order Name,Author,Price,Category.
+     * @param img       The ImageView to load cover photo into.
+     * @param context   Current context.
+     */
+    void toScreen(@NonNull TextView[] textViews, @Nullable ImageView img, @NonNull Context context)
+    {
+        NumberFormat formatter = NumberFormat.getNumberInstance();
+        formatter.setMinimumFractionDigits(2);
+        formatter.setMaximumFractionDigits(2);
+
+        if (textViews.length > 0) textViews[0].setText(getName());
+        if (textViews.length > 1) textViews[1].setText(getAuthor());
+        if (textViews.length > 2)
+            textViews[2].setText(context.getString(R.string.book_popup_rupee_sign,
+                    formatter.format(getPrice())));
+        if (textViews.length > 3) textViews[3].setText(getCategory());
+
+        if (img != null)
+            if (!Utils.checkNull(getPhoto()))
+                Picasso.get().load(getPhoto()).into(img);
+    }
+
     public String getName()
     {
         return Name;
@@ -84,7 +118,7 @@ class Book implements Serializable
 
     public void setPhoto(String photo)
     {
-        Photo = Utils.checkNull(photo) ? null : Photo;
+        Photo = Utils.checkNull(photo) ? null : photo;
     }
 
     public String getPhotoRef()
@@ -123,26 +157,26 @@ class Book implements Serializable
         return PhotoID;
     }
 
-    Map<String,Object> toMap()
+    Map<String, Object> toMap()
     {
-        Map<String,Object> map = new HashMap<>();
-        map.put("Name",Utils.format(getName()));
-        map.put("Author",Utils.format(getAuthor()));
-        map.put("Category",Utils.format(getCategory()));
-        map.put("Photo",getPhoto());
-        map.put("PhotoRef",getPhotoRef());
-        map.put("SavedOn",getSavedOn());
-        map.put("Price",getPrice());
-        map.put("PhotoID",getPhotoID());
+        Map<String, Object> map = new HashMap<>();
+        map.put("Name", Utils.format(getName()));
+        map.put("Author", Utils.format(getAuthor()));
+        map.put("Category", Utils.format(getCategory()));
+        map.put("Photo", getPhoto());
+        map.put("PhotoRef", getPhotoRef());
+        map.put("SavedOn", getSavedOn());
+        map.put("Price", getPrice());
+        map.put("PhotoID", getPhotoID());
         return map;
     }
 
-    public DocumentReference getSelfRef()
+    DocumentReference getSelfRef()
     {
         return SelfRef;
     }
 
-    public void setSelfRef(DocumentReference selfRef)
+    void setSelfRef(DocumentReference selfRef)
     {
         SelfRef = selfRef;
     }

@@ -17,7 +17,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 import com.squareup.picasso.Picasso;
 
-import java.text.NumberFormat;
 import java.util.List;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.viewHolder>
@@ -54,28 +53,22 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         holder.cardView.setOnClickListener(v ->
         {
 
-            final TextView author = popup.findViewById(R.id.book_popup_author);
-            final TextView category = popup.findViewById(R.id.book_popup_category);
-            final TextView price = popup.findViewById(R.id.book_popup_price);
-            final TextView name = popup.findViewById(R.id.book_popup_name);
+            final TextView[] textViews = {
+                    popup.findViewById(R.id.book_popup_name),
+                    popup.findViewById(R.id.book_popup_author),
+                    popup.findViewById(R.id.book_popup_price),
+                    popup.findViewById(R.id.book_popup_category)};
             final ImageView cover = popup.findViewById(R.id.book_popup_cover_photo);
             final MaterialButton edit = popup.findViewById(R.id.book_popup_edit);
             final MaterialButton delete = popup.findViewById(R.id.book_popup_delete);
 
-            NumberFormat formatter = NumberFormat.getNumberInstance();
-            formatter.setMinimumFractionDigits(2);
-            formatter.setMaximumFractionDigits(2);
+            cBook.toScreen(textViews, null, mContext);
 
-            name.setText(cBook.getName());
-            author.setText(cBook.getAuthor());
-            category.setText(cBook.getCategory());
-            price.setText(mContext.getString(R.string.book_popup_rupee_sign,
-                    formatter.format(cBook.getPrice())));
             cover.setImageDrawable(holder.img.getDrawable());
             edit.setOnClickListener((view) ->
             {
                 Intent intent = new Intent(mContext, EditWindow.class);
-                intent.putExtra(CURRENT_BOOK, cBook);
+                intent.putExtra(CURRENT_BOOK, cBook.getSelfRef().getPath());
                 mContext.startActivity(intent);
             });
             delete.setOnClickListener((view) ->
@@ -85,8 +78,8 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                                     cBook.getSelfRef().delete()
                                             .addOnSuccessListener(Null ->
                                             {
-                                                    Utils.showToast("Book successfully deleted!"
-                                                            , mContext);
+                                                Utils.showToast("Book successfully deleted!"
+                                                        , mContext);
                                                 dialogInterface.dismiss();
                                             })
                                             .addOnFailureListener((error) ->
