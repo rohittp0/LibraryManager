@@ -67,7 +67,7 @@ public class Add extends Fragment implements OnFailureListener
     private final int capture_image = 123;
     private final int request_permission = 312;
     //Firebase
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final StorageReference storageRef = FirebaseStorage.getInstance().getReference();
     private final FirebaseVisionTextRecognizer detector = FirebaseVision.getInstance()
             .getOnDeviceTextRecognizer();
@@ -77,8 +77,8 @@ public class Add extends Fragment implements OnFailureListener
     //UI
     private AlertDialog addingDialog;
     private View view;
-    private Bitmap coverPhoto = null;
     private EditText currentEditText;
+    byte[] bytes = null;
 
     @NonNull
     @Contract(" -> new")
@@ -104,21 +104,23 @@ public class Add extends Fragment implements OnFailureListener
                     // this case will occur when taking a picture with a camera
                     performCrop(IMAGE_URI);
                 }
-            }
-            else if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE)
+            } else if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE)
             {
                 CropImage.ActivityResult result = CropImage.getActivityResult(data);
-                try
+
+                new Thread(() ->
                 {
-                    coverPhoto = Utils.scaleToFit(MediaStore.Images.Media.getBitmap(Objects
-                                    .requireNonNull(getActivity()).getContentResolver(),
-                            result.getUri()),
-                            view);
-                    new Thread(() -> getData(coverPhoto)).run();
-                } catch (IOException error)
-                {
-                    onFailure(error);
-                }
+                    try
+                    {
+                        getData(Utils.scaleToFit(MediaStore.Images.Media.getBitmap(Objects
+                                        .requireNonNull(getActivity()).getContentResolver(),
+                                result.getUri()),
+                                view));
+                    } catch (IOException error)
+                    {
+                        onFailure(error);
+                    }
+                }).run();
             }
     }
 
@@ -240,18 +242,15 @@ public class Add extends Fragment implements OnFailureListener
         textView.setThreshold(1);
     }
 
-    private void addBook(@NonNull TextView[] textViews)
+    void addBook(@NonNull TextView[] textViews)
     {
-        toggleAddingDialog();
-        if (coverPhoto != null)
+        toggleAddingDialog(false);
+        if (bytes != null)
         {
-            ByteArrayOutputStream biteArrayOutputStream = new ByteArrayOutputStream();
-            coverPhoto.compress(Bitmap.CompressFormat.JPEG, 100, biteArrayOutputStream);
-
             final String photoRef = "coverPhotos/" + Utils.toSafeFileName(textViews[0]) + '_'
                     + Utils.toSafeFileName(textViews[1]) + new Date().toString();
             StorageReference ref = storageRef.child(photoRef);
-            ref.putBytes(biteArrayOutputStream.toByteArray())
+            ref.putBytes(bytes)
                     .continueWithTask(task ->
                     {
                         if (!task.isSuccessful())
@@ -270,19 +269,21 @@ public class Add extends Fragment implements OnFailureListener
                             onFailure(Objects.requireNonNull(task.getException()));
                         }
                     });
-            coverPhoto = null;
+            bytes = null;
             ImageView cover = view.findViewById(R.id.add_book_cover_photo);
             cover.setImageBitmap(null);
         } else addBook(textViews, null, null);
     }
 
-    private void toggleAddingDialog()
+    void toggleAddingDialog(boolean changeText)
     {
         if (addingDialog == null)
         {
             addingDialog = new AlertDialog.Builder(mContext).create();
             addingDialog.setCancelable(false);
-            addingDialog.setMessage(mContext.getString(R.string.adding_text));
+            addingDialog.setMessage(changeText ?
+                    mContext.getString(R.string.saving_text)
+                    : mContext.getString(R.string.adding_text));
             addingDialog.setIcon(R.drawable.ic_info);
         }
         if (addingDialog.isShowing()) addingDialog.dismiss();
@@ -309,10 +310,11 @@ public class Add extends Fragment implements OnFailureListener
         book.setSavedOn(new Timestamp(new Date()));
         db.collection("Books")
                 .add(book.toMap())
-                .addOnCompleteListener((doc) -> toggleAddingDialog())
-                .addOnSuccessListener(documentReference ->{
-                    for(TextView text :textViews) text.setText("");
-                        Utils.showToast("Added", mContext);
+                .addOnCompleteListener((doc) -> toggleAddingDialog(false))
+                .addOnSuccessListener(documentReference ->
+                {
+                    for (TextView text : textViews) text.setText("");
+                    Utils.showToast("Added", mContext);
                 })
                 .addOnFailureListener(error ->
                 {
@@ -364,8 +366,11 @@ public class Add extends Fragment implements OnFailureListener
                 .start(mContext, this);
     }
 
-    private void getData(Bitmap image)
+    private void getData(@NonNull Bitmap image)
     {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        image.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+        bytes = outputStream.toByteArray();
         if (view == null) return;
         final FirebaseVisionImage firebaseVisionImage = FirebaseVisionImage.fromBitmap(image);
         detector.processImage(firebaseVisionImage)
@@ -378,7 +383,7 @@ public class Add extends Fragment implements OnFailureListener
                                 if (line.getBoundingBox() != null && line.getText() != null
                                         && line.getText().length() > 0)
                                     TextTable.put(line.getBoundingBox(), line.getText());
-                        addRectangles();
+                        addRectangles(image);
                     } catch (Exception error)
                     {
                         onFailure(error);
@@ -394,10 +399,9 @@ public class Add extends Fragment implements OnFailureListener
         //TODO add crashlytics
     }
 
-    private void addRectangles()
+    private void addRectangles(Bitmap temp)
     {
-        if (coverPhoto == null || TextTable.isEmpty()) return;
-        Bitmap temp = coverPhoto;
+        if (temp == null || TextTable.isEmpty()) return;
         ImageView cover = view.findViewById(R.id.add_book_cover_photo);
         Canvas canvas = new Canvas(temp);
         Paint rectPaint = new Paint();
