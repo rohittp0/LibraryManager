@@ -187,8 +187,8 @@ public class Add extends Fragment implements OnFailureListener
         final EditText[] textViews = {
                 view.findViewById(R.id.add_book_name),
                 view.findViewById(R.id.add_book_author),
-                view.findViewById(R.id.add_book_category),
-                view.findViewById(R.id.add_book_price)
+                view.findViewById(R.id.add_book_price),
+                view.findViewById(R.id.add_book_category)
         };
         initTextView(textViews);
 
@@ -209,7 +209,7 @@ public class Add extends Fragment implements OnFailureListener
                 Utils.showToast("Please enter a name.", mContext);
             else if (Utils.checkNull(textViews[1].getText().toString()))
                 Utils.showToast("Author's name can't be empty.", mContext);
-            else if (Utils.checkNull(textViews[2].getText().toString()))
+            else if (Utils.checkNull(textViews[3].getText().toString()))
                 Utils.showToast("Please enter a category", mContext);
             else addBook(textViews);
         });
@@ -220,13 +220,12 @@ public class Add extends Fragment implements OnFailureListener
     {
         for (TextView text : textViews)
         {
-            text.setOnClickListener(v ->
+            text.setOnFocusChangeListener((view, bool) ->
             {
-                currentEditText = (EditText) v;
+                text.setText(Utils.format(text.getText().toString()));
+                currentEditText = (EditText) text;
                 Utils.showToast("Selected", mContext);
             });
-            text.setOnFocusChangeListener((view, bool) ->
-                    text.setText(Utils.format(text.getText().toString())));
             text.startAnimation(AnimationUtils.loadAnimation(getContext(),
                     R.anim.zoom_in));
         }
@@ -242,7 +241,7 @@ public class Add extends Fragment implements OnFailureListener
         textView.setThreshold(1);
     }
 
-    void addBook(@NonNull TextView[] textViews)
+    void addBook(@NonNull EditText[] textViews)
     {
         toggleAddingDialog(false);
         if (bytes != null)
@@ -290,10 +289,10 @@ public class Add extends Fragment implements OnFailureListener
         else addingDialog.show();
     }
 
-    private void addBook(@NonNull TextView[] textViews, String photo, String photoRef)
+    private void addBook(@NonNull EditText[] textViews, String photo, String photoRef)
     {
         float price = 0;
-        String price_text = textViews[3].getText().toString().trim();
+        String price_text = textViews[2].getText().toString().trim();
         try
         {
             if (!Utils.checkNull(price_text)) price = Float.parseFloat(price_text);
@@ -304,7 +303,7 @@ public class Add extends Fragment implements OnFailureListener
 
         Book book = new Book(textViews[0].getText().toString(),
                 textViews[1].getText().toString(),
-                textViews[2].getText().toString(),
+                textViews[3].getText().toString(),
                 photo, photoRef,
                 price);
         book.setSavedOn(new Timestamp(new Date()));

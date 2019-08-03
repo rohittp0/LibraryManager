@@ -2,6 +2,7 @@ package com.make.it.kit.librarymanager;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -17,17 +18,20 @@ public class EditFragment extends Add
     private DocumentReference bookRef;
     private String deleteRef = null;
     private EditWindow This;
+    private String bookPath;
 
     @NonNull
-    static EditFragment newInstance(EditWindow This)
+    static EditFragment newInstance(@NonNull EditWindow This)
     {
         final EditFragment editFragment = new EditFragment();
         editFragment.This = This;
+        editFragment.bookPath = Objects.requireNonNull(This.getIntent().getExtras())
+                .getString(RecyclerViewAdapter.CURRENT_BOOK);
         return editFragment;
     }
 
     @Override
-    void addBook(@NonNull TextView[] textViews)
+    void addBook(@NonNull EditText[] textViews)
     {
         toggleAddingDialog(true);
         This.addBook(textViews, bookRef, bytes, deleteRef, this);
@@ -37,10 +41,7 @@ public class EditFragment extends Add
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
     {
         super.onViewCreated(view, savedInstanceState);
-        bookRef = db.document(Objects.requireNonNull(
-                Objects.requireNonNull(This.getIntent().getExtras())
-                        .getString(RecyclerViewAdapter.CURRENT_BOOK)));
-
+        bookRef = db.document(bookPath);
         bookRef.get().addOnCompleteListener((snapshotTask) ->
         {
             final Book book = Objects.requireNonNull(snapshotTask.getResult()).toObject(Book.class);
