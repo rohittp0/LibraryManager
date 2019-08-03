@@ -67,7 +67,10 @@ public class Home extends Fragment implements SwipeRefreshLayout.OnRefreshListen
 
         if (recyclerView.getAdapter() == null && Refresh)
         {
-            swipe.post(() -> swipe.setRefreshing(true));
+            swipe.post(() ->
+            {
+                if (recyclerView.getAdapter() == null) swipe.setRefreshing(true);
+            });
             Refresher = bookRef.orderBy("SavedOn", Query.Direction.DESCENDING).limit(20)
                     .addSnapshotListener(this);
         }

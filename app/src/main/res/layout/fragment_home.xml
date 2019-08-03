@@ -5,14 +5,17 @@
     android:padding="0dp">
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/home_swipe_refresh"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/home_swipe_refresh">
+        android:layout_gravity="center">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/home_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:foregroundGravity="center"
             android:padding="5dp" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

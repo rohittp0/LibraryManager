@@ -76,10 +76,10 @@
                 android:textSize="18sp" />
 
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:gravity="center_horizontal"
+                android:gravity="center"
                 android:padding="3dp">
 
                 <com.google.android.material.button.MaterialButton
@@ -87,6 +87,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="5dp"
+                    android:singleLine="true"
                     android:text="@string/book_pop_up_edit_button_text"
                     android:textAlignment="center"
                     app:backgroundTint="@color/positiveBlue" />
@@ -96,6 +97,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="5dp"
+                    android:singleLine="true"
                     android:text="@string/book_pop_up_delete_button_text"
                     android:textAlignment="center"
                     app:backgroundTint="@color/alertRed" />
