@@ -16,7 +16,7 @@ import java.util.Objects;
 public class EditFragment extends Add
 {
     private DocumentReference bookRef;
-    private String deleteRef = null;
+    private Book book;
     private EditWindow This;
 
     @NonNull
@@ -28,35 +28,39 @@ public class EditFragment extends Add
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState)
+    {
+        super.onCreate(savedInstanceState);
+        bookRef = db.document(This.bookPath);
+        bookRef.get().addOnCompleteListener((snapshotTask) ->
+        {
+            book = Objects.requireNonNull(snapshotTask.getResult()).toObject(Book.class);
+            if (book == null || !snapshotTask.getResult().exists())
+                throw new NullPointerException("No such book exists.");
+        }).addOnFailureListener(this);
+    }
+
+    @Override
     void addBook(@NonNull EditText[] textViews)
     {
         toggleAddingDialog(true);
-        This.addBook(textViews, bookRef, bytes, deleteRef, this);
+        This.addBook(textViews, bookRef, bytes, book.getPhotoRef(), this);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
     {
         super.onViewCreated(view, savedInstanceState);
-        bookRef = db.document(This.bookPath);
-        bookRef.get().addOnCompleteListener((snapshotTask) ->
-        {
-            final Book book = Objects.requireNonNull(snapshotTask.getResult()).toObject(Book.class);
-            if (book == null || !snapshotTask.getResult().exists())
-                throw new NullPointerException("No such book exists.");
-            deleteRef = book.getPhotoRef();
-            TextView[] textViews =
-                    {
-                            view.findViewById(R.id.add_book_name),
-                            view.findViewById(R.id.add_book_author),
-                            view.findViewById(R.id.add_book_price),
-                            view.findViewById(R.id.add_book_category)
-                    };
-            book.toScreen(textViews, view.findViewById(R.id.add_book_cover_photo),
-                    Objects.requireNonNull(getContext()));
-            textViews[2].setText(textViews[2].getText().subSequence(1, textViews[2].getText().length()));
-        })
-                .addOnFailureListener(this);
+        TextView[] textViews =
+                {
+                        view.findViewById(R.id.add_book_name),
+                        view.findViewById(R.id.add_book_author),
+                        view.findViewById(R.id.add_book_price),
+                        view.findViewById(R.id.add_book_category)
+                };
+        book.toScreen(textViews, view.findViewById(R.id.add_book_cover_photo),
+                Objects.requireNonNull(getContext()));
+        textViews[2].setText(textViews[2].getText().subSequence(1, textViews[2].getText().length()));
         MaterialButton submit = view.findViewById(R.id.add_book_submit_button);
         submit.setText(R.string.edit_button_text);
     }

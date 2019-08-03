@@ -19,11 +19,6 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-//import com.algolia.search.saas.AlgoliaException;
-//import com.algolia.search.saas.Client;
-//import com.algolia.search.saas.Index;
-//import com.algolia.search.saas.Query;
-//import com.algolia.search.saas.RequestOptions;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.ErrorCodes;
 import com.firebase.ui.auth.FirebaseUiException;
@@ -38,6 +33,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
+
+//import com.algolia.search.saas.AlgoliaException;
+//import com.algolia.search.saas.Client;
+//import com.algolia.search.saas.Index;
+//import com.algolia.search.saas.Query;
+//import com.algolia.search.saas.RequestOptions;
 
 public class MainActivity extends AppCompatActivity implements
         SearchView.OnQueryTextListener,
@@ -72,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements
     //Design
     private final DisplayMetrics displayMetrics = new DisplayMetrics();
     private final FragmentManager manager = this.getSupportFragmentManager();
-    private final Fragment[] pages = {Home.newInstance(), Add.newInstance(), Stats.newInstance()};
+    private final Fragment[] pages = {Home.newInstance(true), Add.newInstance(), Stats.newInstance()};
     private int currentMenuItem;
 
     @Override

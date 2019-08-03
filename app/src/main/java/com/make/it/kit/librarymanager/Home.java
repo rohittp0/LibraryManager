@@ -16,29 +16,38 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-
-import org.jetbrains.annotations.Contract;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class Home extends Fragment implements SwipeRefreshLayout.OnRefreshListener
+public class Home extends Fragment implements SwipeRefreshLayout.OnRefreshListener, EventListener<QuerySnapshot>
 {
 
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private final CollectionReference bookRef = FirebaseFirestore.getInstance()
+            .collection("Books");
+
     private static final float BOOK_SIZE = 130;
 
     private View view;
     private RecyclerView recyclerView;
     private SwipeRefreshLayout swipe;
 
+    private boolean Refresh = true;
+    private ListenerRegistration Refresher;
+
     @NonNull
-    @Contract(" -> new")
-    static Home newInstance()
+    static Home newInstance(boolean refresh)
     {
-        return new Home();
+        final Home home = new Home();
+        home.Refresh = refresh;
+        return home;
     }
 
 
@@ -56,9 +65,24 @@ public class Home extends Fragment implements SwipeRefreshLayout.OnRefreshListen
         if (recyclerView.getLayoutManager() == null)
             recyclerView.setLayoutManager(new GridLayoutManager(getActivity(), getCount(view)));
 
-        if (recyclerView.getAdapter() == null) swipe.post(this::onRefresh);
-
+        if (recyclerView.getAdapter() == null && Refresh)
+        {
+            swipe.post(() -> swipe.setRefreshing(true));
+            Refresher = bookRef.orderBy("SavedOn", Query.Direction.DESCENDING).limit(20)
+                    .addSnapshotListener(this);
+        }
         return view;
+    }
+
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+        if (Refresher != null)
+        {
+            Refresher.remove();
+            Refresher = null;
+        }
     }
 
     @Override
@@ -91,8 +115,8 @@ public class Home extends Fragment implements SwipeRefreshLayout.OnRefreshListen
     @Override
     public void onRefresh()
     {
+        if (!Refresh) return;
         swipe.setRefreshing(true);
-        CollectionReference bookRef = db.collection("Books");
         // Create a query against the collection.
         bookRef.orderBy("SavedOn", com.google.firebase.firestore.Query.Direction.DESCENDING)
                 .limit(20).get()
@@ -120,5 +144,30 @@ public class Home extends Fragment implements SwipeRefreshLayout.OnRefreshListen
     private void firebaseError(@Nullable Exception error)
     {
         if (error != null) error.printStackTrace(); //TODO add crashlytics
+    }
+
+    @Override
+    public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e)
+    {
+        if (e != null || queryDocumentSnapshots == null)
+        {
+            firebaseError(e);
+            Utils.alert("Unable to get Books", getContext());
+        } else
+        {
+            final List<DocumentSnapshot> documents = queryDocumentSnapshots.getDocuments();
+            final List<Book> books = new ArrayList<>();
+            for (int i = 0; i < documents.size(); i++)
+            {
+                final Book book = documents.get(i).toObject(Book.class);
+                if (book != null)
+                {
+                    book.setSelfRef(documents.get(i).getReference());
+                    books.add(book);
+                }
+            }
+            recyclerView.setAdapter(new RecyclerViewAdapter(getContext(), books));
+        }
+        if (swipe.isRefreshing()) swipe.setRefreshing(false);
     }
 }
