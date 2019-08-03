@@ -70,6 +70,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                 Intent intent = new Intent(mContext, EditWindow.class);
                 intent.putExtra(CURRENT_BOOK, cBook.getSelfRef().getPath());
                 mContext.startActivity(intent);
+                popup.dismiss();
             });
             delete.setOnClickListener((view) ->
                     new AlertDialog.Builder(mContext)

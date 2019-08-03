@@ -18,15 +18,12 @@ public class EditFragment extends Add
     private DocumentReference bookRef;
     private String deleteRef = null;
     private EditWindow This;
-    private String bookPath;
 
     @NonNull
     static EditFragment newInstance(@NonNull EditWindow This)
     {
         final EditFragment editFragment = new EditFragment();
         editFragment.This = This;
-        editFragment.bookPath = Objects.requireNonNull(This.getIntent().getExtras())
-                .getString(RecyclerViewAdapter.CURRENT_BOOK);
         return editFragment;
     }
 
@@ -41,7 +38,7 @@ public class EditFragment extends Add
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
     {
         super.onViewCreated(view, savedInstanceState);
-        bookRef = db.document(bookPath);
+        bookRef = db.document(This.bookPath);
         bookRef.get().addOnCompleteListener((snapshotTask) ->
         {
             final Book book = Objects.requireNonNull(snapshotTask.getResult()).toObject(Book.class);

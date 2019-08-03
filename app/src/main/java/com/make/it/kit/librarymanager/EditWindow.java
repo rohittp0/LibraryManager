@@ -22,13 +22,17 @@ import java.util.Objects;
 
 public class EditWindow extends AppCompatActivity implements OnCompleteListener<Void>, OnFailureListener
 {
+    String bookPath;
     private Add add;
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_window);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        bookPath = Objects.requireNonNull(getIntent().getExtras())
+                .getString(RecyclerViewAdapter.CURRENT_BOOK);
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.edit_fragment_container, EditFragment.newInstance(this)).commit();
     }
@@ -68,7 +72,6 @@ public class EditWindow extends AppCompatActivity implements OnCompleteListener<
                     })
                     .addOnCompleteListener(task ->
                     {
-                        add.toggleAddingDialog(true);
                         if (task.isSuccessful() && task.getResult() != null)
                         {
                             map.put("Photo", task.getResult().toString());
