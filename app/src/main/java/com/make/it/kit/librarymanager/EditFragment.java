@@ -31,13 +31,13 @@ public class EditFragment extends Add
     public void onCreate(@Nullable Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        bookRef = db.document(This.bookPath);
-        bookRef.get().addOnCompleteListener((snapshotTask) ->
+        try
         {
-            book = Objects.requireNonNull(snapshotTask.getResult()).toObject(Book.class);
-            if (book == null || !snapshotTask.getResult().exists())
-                throw new NullPointerException("No such book exists.");
-        }).addOnFailureListener(this);
+            bookRef = db.document(Objects.requireNonNull(Objects.requireNonNull(This.getIntent().getExtras())
+                    .getString(RecyclerViewAdapter.CURRENT_BOOK)));
+        } catch (NullPointerException ignored)
+        {
+        }
     }
 
     @Override
@@ -51,6 +51,7 @@ public class EditFragment extends Add
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
     {
         super.onViewCreated(view, savedInstanceState);
+
         TextView[] textViews =
                 {
                         view.findViewById(R.id.add_book_name),
@@ -58,10 +59,19 @@ public class EditFragment extends Add
                         view.findViewById(R.id.add_book_price),
                         view.findViewById(R.id.add_book_category)
                 };
-        book.toScreen(textViews, view.findViewById(R.id.add_book_cover_photo),
-                Objects.requireNonNull(getContext()));
-        textViews[2].setText(textViews[2].getText().subSequence(1, textViews[2].getText().length()));
+
+        if (bookRef != null) bookRef.get().addOnCompleteListener((snapshotTask) ->
+        {
+            book = Objects.requireNonNull(snapshotTask.getResult()).toObject(Book.class);
+            if (book == null || !snapshotTask.getResult().exists())
+                throw new NullPointerException("No such book exists.");
+            book.toScreen(textViews, view.findViewById(R.id.add_book_cover_photo),
+                    Objects.requireNonNull(getContext()));
+            textViews[2].setText(textViews[2].getText().subSequence(1, textViews[2].getText().length()));
+        }).addOnFailureListener(this);
+
         MaterialButton submit = view.findViewById(R.id.add_book_submit_button);
         submit.setText(R.string.edit_button_text);
+
     }
 }

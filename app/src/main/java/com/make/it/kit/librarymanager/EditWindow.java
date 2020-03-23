@@ -22,7 +22,6 @@ import java.util.Objects;
 
 public class EditWindow extends AppCompatActivity implements OnCompleteListener<Void>, OnFailureListener
 {
-    String bookPath;
     private Add add;
 
     @Override
@@ -31,8 +30,6 @@ public class EditWindow extends AppCompatActivity implements OnCompleteListener<
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_window);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
-        bookPath = Objects.requireNonNull(getIntent().getExtras())
-                .getString(RecyclerViewAdapter.CURRENT_BOOK);
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.edit_fragment_container, EditFragment.newInstance(this)).commit();
     }
@@ -85,7 +82,7 @@ public class EditWindow extends AppCompatActivity implements OnCompleteListener<
 
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item)
+    public boolean onOptionsItemSelected(@NonNull MenuItem item)
     {
         finish();
         return true;

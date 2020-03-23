@@ -120,7 +120,7 @@ public class Add extends Fragment implements OnFailureListener
                     {
                         onFailure(error);
                     }
-                }).run();
+                }).start();
             }
     }
 
@@ -140,7 +140,7 @@ public class Add extends Fragment implements OnFailureListener
     }
 
     @Override
-    public void onAttach(Context context)
+    public void onAttach(@NonNull Context context)
     {
         super.onAttach(context);
         mContext = context;
@@ -223,8 +223,7 @@ public class Add extends Fragment implements OnFailureListener
             text.setOnFocusChangeListener((view, bool) ->
             {
                 text.setText(Utils.format(text.getText().toString()));
-                currentEditText = (EditText) text;
-                Utils.showToast("Selected", mContext);
+                if (bool) currentEditText = (EditText) text;
             });
             text.startAnimation(AnimationUtils.loadAnimation(getContext(),
                     R.anim.zoom_in));
@@ -379,8 +378,7 @@ public class Add extends Fragment implements OnFailureListener
                     {
                         for (FirebaseVisionText.TextBlock block : result.getTextBlocks())
                             for (FirebaseVisionText.Line line : block.getLines())
-                                if (line.getBoundingBox() != null && line.getText() != null
-                                        && line.getText().length() > 0)
+                                if (line.getBoundingBox() != null && line.getText().length() > 0)
                                     TextTable.put(line.getBoundingBox(), line.getText());
                         addRectangles(image);
                     } catch (Exception error)
