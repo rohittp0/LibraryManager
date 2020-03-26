@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ImageDecoder;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.net.Uri;
@@ -87,6 +88,7 @@ public class Add extends Fragment implements OnFailureListener
         return new Add();
     }
 
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data)
     {
@@ -112,16 +114,21 @@ public class Add extends Fragment implements OnFailureListener
                 {
                     try
                     {
-                        getData(Utils.scaleToFit(MediaStore.Images.Media.getBitmap(Objects
-                                        .requireNonNull(getActivity()).getContentResolver(),
-                                result.getUri()),
-                                view));
+                        assert getActivity() != null;
+                        Bitmap image;
+                        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+                            image = ImageDecoder.decodeBitmap(ImageDecoder.createSource(getActivity()
+                                    .getContentResolver(), result.getUri()));
+                        else image = MediaStore.Images.Media.getBitmap(getActivity().
+                                        getContentResolver(),
+                                result.getUri());
+                        getData(Utils.scaleToFit(image, view));
                     } catch (IOException error)
                     {
                         onFailure(error);
                     }
                 }).start();
-            }
+            } else Utils.showToast("Oops Someting went wrong", mContext);
     }
 
     @Override
@@ -155,16 +162,17 @@ public class Add extends Fragment implements OnFailureListener
         view = inflater.inflate(R.layout.add_fragment, container, false);
         view.findViewById(R.id.add_select_cover_photo).setOnClickListener(v ->
         {
-            if (mContext != null && getActivity() != null)
-            {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                        && ContextCompat.checkSelfPermission(mContext,
-                        Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
-                    ActivityCompat.requestPermissions(getActivity(),
-                            new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                            request_permission);
-                else capturePhoto();
-            }
+            assert getActivity() != null;
+            if (ContextCompat.checkSelfPermission(mContext,
+                    Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+                ActivityCompat.requestPermissions(getActivity(),
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        request_permission);
+            if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA)
+                    == PackageManager.PERMISSION_DENIED)
+                ActivityCompat.requestPermissions(getActivity(),
+                        new String[]{Manifest.permission.CAMERA}, request_permission);
+            capturePhoto();
         });
 
         view.findViewById(R.id.add_book_cover_photo).setOnTouchListener((view, event) ->
@@ -325,7 +333,7 @@ public class Add extends Fragment implements OnFailureListener
     {
         try
         {
-            IMAGE_URI = Utils.createTemporaryFile();
+            IMAGE_URI = Utils.createTemporaryFile(mContext);
             Intent galleryIntent = new Intent(Intent.ACTION_PICK,
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -334,7 +342,7 @@ public class Add extends Fragment implements OnFailureListener
             cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, IMAGE_URI);
 
             chooser.putExtra(Intent.EXTRA_INTENT, galleryIntent);
-            chooser.putExtra(Intent.EXTRA_TITLE, getString(R.string.add_book_heading));
+            chooser.putExtra(Intent.EXTRA_TITLE, getString(R.string.select_cover_image_title));
             Intent[] intentArray = {cameraIntent};
             chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
             startActivityForResult(chooser, capture_image);
@@ -392,6 +400,7 @@ public class Add extends Fragment implements OnFailureListener
     @Override
     public void onFailure(@NonNull Exception error)
     {
+        Utils.showToast("Oops something went wrong.", mContext);
         error.printStackTrace();
         //TODO add crashlytics
     }

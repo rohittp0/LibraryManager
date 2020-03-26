@@ -9,11 +9,9 @@ import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Environment;
 import android.util.SparseIntArray;
 import android.view.MotionEvent;
 import android.view.Surface;
@@ -65,19 +63,12 @@ final class Utils
      * Creates a temporary file and returns it's Uri after deleting it.
      *
      * @return Uri of created file
-     *
      * @throws IOException If unable to create temp directory , unable to create temp file or
      *                     unable to delete temp file.
      */
-    static Uri createTemporaryFile() throws IOException
+    static Uri createTemporaryFile(Context context) throws IOException
     {
-        File tempDir = Environment.getExternalStorageDirectory();
-        tempDir = new File(tempDir.getAbsolutePath() + "/.temp/");
-        if (!tempDir.exists())
-        {
-            if (!tempDir.mkdirs()) throw new IOException("Unable to create temp.");
-        }
-        File ret = File.createTempFile("picture", ".png", tempDir);
+        File ret = File.createTempFile("picture", ".png", context.getExternalCacheDir());
         if (!ret.delete()) throw new IOException("Unable to delete file.");
         return Uri.fromFile(ret);
     }
@@ -106,7 +97,6 @@ final class Utils
      * First element of the returned array is the width and second is the height.
      *
      * @param view The view to find size of.
-     *
      * @return An int array containing width and height.
      */
     @NonNull
@@ -243,6 +233,7 @@ final class Utils
         int sensorOrientation = 0;
         try
         {
+            assert cameraManager != null;
             sensorOrientation = Objects.requireNonNull(cameraManager
                     .getCameraCharacteristics(cameraId)
                     .get(CameraCharacteristics.SENSOR_ORIENTATION));
@@ -280,13 +271,13 @@ final class Utils
     static String format(String string)
     {
         string = string.toLowerCase().trim();
-        if(string.isEmpty()) return "";
+        if (string.isEmpty()) return "";
         char[] strings = string.toCharArray();
         strings[0] = (strings[0] + "").toUpperCase().charAt(0);
-        for (int i = 0; i < strings.length-1; i++)
+        for (int i = 0; i < strings.length - 1; i++)
             for (final char punctuation : PUNCTUATIONS)
                 if (punctuation == strings[i])
-                    strings[i+1] = (strings[i+1] + "").toUpperCase().charAt(0);
+                    strings[i + 1] = (strings[i + 1] + "").toUpperCase().charAt(0);
         return new String(strings);
     }
 }
@@ -310,10 +301,12 @@ class CheckInternet extends AsyncTask<Context, Void, Integer>
             ConnectivityManager cm =
                     (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
-            assert cm != null;
-            NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-            isConnected = activeNetwork != null &&
-                    activeNetwork.isConnected();
+            if (cm != null)
+                if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+                    isConnected = cm.getNetworkCapabilities(cm.getActiveNetwork()) != null;
+                else
+                    isConnected = cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnected();
+            else isConnected = false;
         } catch (Exception error)
         {
             error.printStackTrace(); // TODO add crashlytics

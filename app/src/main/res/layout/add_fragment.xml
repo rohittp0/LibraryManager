@@ -25,7 +25,8 @@
                 android:layout_height="70dp"
                 android:layout_marginTop="15dp"
                 android:padding="0dp"
-                android:theme="@style/Theme.AppCompat"
+                android:textColorHint="@color/white"
+                android:theme="@style/TextInputLayoutTextStyle"
                 app:hintTextAppearance="@style/TextAppearance.AppCompat.Body1">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -44,13 +45,13 @@
                     tools:targetApi="o" />
             </com.google.android.material.textfield.TextInputLayout>
 
-
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="70dp"
                 android:layout_marginTop="15dp"
                 android:padding="0dp"
-                android:theme="@style/Theme.AppCompat"
+                android:textColorHint="@color/white"
+                android:theme="@style/TextInputLayoutTextStyle"
                 app:hintTextAppearance="@style/TextAppearance.AppCompat.Body1">
 
                 <AutoCompleteTextView
@@ -75,7 +76,8 @@
                 android:layout_height="70dp"
                 android:layout_marginTop="15dp"
                 android:padding="0dp"
-                android:theme="@style/Theme.AppCompat"
+                android:textColorHint="@color/white"
+                android:theme="@style/TextInputLayoutTextStyle"
                 app:hintTextAppearance="@style/TextAppearance.AppCompat.Body1">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -99,7 +101,8 @@
                 android:layout_height="70dp"
                 android:layout_marginTop="15dp"
                 android:padding="0dp"
-                android:theme="@style/Theme.AppCompat"
+                android:textColorHint="@color/white"
+                android:theme="@style/TextInputLayoutTextStyle"
                 app:hintTextAppearance="@style/TextAppearance.AppCompat.Body1">
 
                 <AutoCompleteTextView
@@ -129,10 +132,11 @@
             android:layout_marginRight="5dp">
 
             <androidx.core.widget.NestedScrollView
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/add_select_cover_photo"
                 android:layout_centerHorizontal="true"
+                android:layout_gravity="center_horizontal"
                 android:scrollbarAlwaysDrawVerticalTrack="true">
 
                 <ImageView

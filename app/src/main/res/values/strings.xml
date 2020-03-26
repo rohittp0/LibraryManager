@@ -22,7 +22,7 @@
     <string name="author_name_hint">Author</string>
     <string name="price_hint">Price</string>
     <string name="category_hint">Category</string>
-    <string name="add_book_heading">Add Book</string>
+    <string name="select_cover_image_title">Select a Cover</string>
     <string name="NULL" />
     <string name="add_button_text">Add</string>
     <string name="book_popup_rupee_sign">₹ %1$s</string>
