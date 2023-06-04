@@ -34,6 +34,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.algolia.search.saas.Client;
+import com.algolia.search.saas.Index;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.Timestamp;
@@ -64,15 +66,14 @@ public class Add extends Fragment implements OnFailureListener
 {
     //Text Extraction
     private static Uri IMAGE_URI;
-    //Constants
-    private final int capture_image = 123;
-    private final int request_permission = 312;
     //Firebase
-    final FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private final StorageReference storageRef = FirebaseStorage.getInstance().getReference();
     private final FirebaseVisionTextRecognizer detector = FirebaseVision.getInstance()
             .getOnDeviceTextRecognizer();
     private final Map<Rect, String> TextTable = new HashMap<>();
+    //Algolia
+    private Index index;
     //class data
     private Context mContext;
     //UI
@@ -94,7 +95,7 @@ public class Add extends Fragment implements OnFailureListener
     {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK)
-            if (requestCode == capture_image)
+            if (requestCode == getResources().getInteger(R.integer.capture_image))
             {
                 if (data != null && data.getData() != null)
                 {
@@ -128,7 +129,7 @@ public class Add extends Fragment implements OnFailureListener
                         onFailure(error);
                     }
                 }).start();
-            } else Utils.showToast("Oops Someting went wrong", mContext);
+            } else Utils.showToast(R.string.common_error, mContext);
     }
 
     @Override
@@ -137,11 +138,11 @@ public class Add extends Fragment implements OnFailureListener
                                            @NonNull final int[] grantResults)
     {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == request_permission)
+        if (requestCode == getResources().getInteger(R.integer.request_permission))
         {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
                 capturePhoto();
-            else Toast.makeText(getActivity(), "Can't capture photo PERMISSION DENIED",
+            else Toast.makeText(getActivity(), getString(R.string.camera_permission_denied),
                     Toast.LENGTH_LONG).show();
         }
     }
@@ -159,6 +160,8 @@ public class Add extends Fragment implements OnFailureListener
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState)
     {
+        index = new Client(getString(R.string.algolia_application_id),
+                getString(R.string.algolia_api_key)).getIndex(getString(R.string.algolia_index));
         view = inflater.inflate(R.layout.add_fragment, container, false);
         view.findViewById(R.id.add_select_cover_photo).setOnClickListener(v ->
         {
@@ -167,11 +170,12 @@ public class Add extends Fragment implements OnFailureListener
                     Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
                 ActivityCompat.requestPermissions(getActivity(),
                         new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                        request_permission);
+                        getResources().getInteger(R.integer.request_permission));
             if (ContextCompat.checkSelfPermission(mContext, Manifest.permission.CAMERA)
                     == PackageManager.PERMISSION_DENIED)
                 ActivityCompat.requestPermissions(getActivity(),
-                        new String[]{Manifest.permission.CAMERA}, request_permission);
+                        new String[]{Manifest.permission.CAMERA},
+                        getResources().getInteger(R.integer.request_permission));
             capturePhoto();
         });
 
@@ -185,7 +189,7 @@ public class Add extends Fragment implements OnFailureListener
                         currentEditText.setText(String.format("%s %s", currentEditText.getText(),
                                 TextTable.get(rect)));
                         currentEditText = null;
-                        Utils.showToast("Copied", mContext);
+                        Utils.showToast(R.string.text_copied_from_image, mContext);
                         break;
                     }
             }
@@ -214,11 +218,11 @@ public class Add extends Fragment implements OnFailureListener
         addButton.setOnClickListener((clicked_view) ->
         {
             if (Utils.checkNull(textViews[0].getText().toString()))
-                Utils.showToast("Please enter a name.", mContext);
+                Utils.showToast(R.string.no_name_error, mContext);
             else if (Utils.checkNull(textViews[1].getText().toString()))
-                Utils.showToast("Author's name can't be empty.", mContext);
+                Utils.showToast(R.string.no_author, mContext);
             else if (Utils.checkNull(textViews[3].getText().toString()))
-                Utils.showToast("Please enter a category", mContext);
+                Utils.showToast(R.string.no_category, mContext);
             else addBook(textViews);
         });
         return view;
@@ -271,7 +275,7 @@ public class Add extends Fragment implements OnFailureListener
                                     task.getResult().toString(), ref.getPath());
                         else
                         {
-                            Utils.alert("Failed to save cover photo.", mContext);
+                            Utils.alert(R.string.photo_upload_failed, mContext);
                             onFailure(Objects.requireNonNull(task.getException()));
                         }
                     });
@@ -317,14 +321,24 @@ public class Add extends Fragment implements OnFailureListener
         db.collection("Books")
                 .add(book.toMap())
                 .addOnCompleteListener((doc) -> toggleAddingDialog(false))
-                .addOnSuccessListener(documentReference ->
+                .continueWith((documentReferenceTask) ->
                 {
-                    for (TextView text : textViews) text.setText("");
-                    Utils.showToast("Added", mContext);
+                    if (documentReferenceTask.isSuccessful())
+                    {
+                        book.setSelfRef(documentReferenceTask.getResult());
+                        index.addObjectAsync(book.toJSONObject(), (jsonObject, algoliaException) ->
+                        {
+                            if (algoliaException != null)
+                                onFailure(algoliaException);
+                            for (TextView text : textViews) text.setText("");
+                            Utils.showToast(R.string.book_added, mContext);
+                        });
+                    }
+                    return documentReferenceTask.getResult();
                 })
                 .addOnFailureListener(error ->
                 {
-                    Utils.alert("Failed to add book.", mContext);
+                    Utils.alert(R.string.failed_to_add_book, mContext);
                     onFailure(error);
                 });
     }
@@ -345,7 +359,8 @@ public class Add extends Fragment implements OnFailureListener
             chooser.putExtra(Intent.EXTRA_TITLE, getString(R.string.select_cover_image_title));
             Intent[] intentArray = {cameraIntent};
             chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
-            startActivityForResult(chooser, capture_image);
+            startActivityForResult(chooser,
+                    getResources().getInteger(R.integer.capture_image));
         } catch (IOException error)
         {
             onFailure(error);
@@ -400,7 +415,7 @@ public class Add extends Fragment implements OnFailureListener
     @Override
     public void onFailure(@NonNull Exception error)
     {
-        Utils.showToast("Oops something went wrong.", mContext);
+        Utils.showToast(R.string.common_error, mContext);
         error.printStackTrace();
         //TODO add crashlytics
     }

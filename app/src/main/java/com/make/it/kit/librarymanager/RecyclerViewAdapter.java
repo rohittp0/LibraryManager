@@ -14,6 +14,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.algolia.search.saas.Client;
+import com.algolia.search.saas.Index;
 import com.google.android.material.button.MaterialButton;
 import com.squareup.picasso.Picasso;
 
@@ -25,11 +27,15 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     private final Context mContext;
     private List<Book> mData;
     private final Dialog popup;
+    //Algolia
+    private Index index;
 
-    RecyclerViewAdapter(Context mContext, List<Book> books)
+    RecyclerViewAdapter(@NonNull Context mContext, List<Book> books)
     {
         this.mContext = mContext;
         this.mData = books;
+        index = new Client(mContext.getString(R.string.algolia_application_id),
+                MainActivity.ALGOLIA_API_KEY).getIndex(mContext.getString(R.string.algolia_index));
         popup = new Dialog(mContext, R.style.Dialog_FrameLess);
         popup.setContentView(R.layout.book_popup);
     }
@@ -78,13 +84,17 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
                             .setPositiveButton("Yes", (dialogInterface, index) ->
                                     cBook.getSelfRef().delete()
                                             .addOnSuccessListener(Null ->
-                                            {
-                                                Utils.showToast("Book successfully deleted!"
-                                                        , mContext);
-                                                dialogInterface.dismiss();
-                                            })
+                                                    this.index.deleteObjectAsync(cBook.getSelfRef().getPath(),
+                                                            (jsonObject, algoliaException) ->
+                                                            {
+                                                                if (algoliaException != null)
+                                                                    Utils.alert(R.string.failed_algolia_delete, mContext);
+                                                                else
+                                                                    Utils.showToast(R.string.book_delete_success, mContext);
+                                                                dialogInterface.dismiss();
+                                                            }))
                                             .addOnFailureListener((error) ->
-                                                    Utils.alert("Unable to delete Book."
+                                                    Utils.alert(R.string.book_delete_failed
                                                             , mContext)))
                             .setNegativeButton("No", (dialogInterface, index) ->
                                     dialogInterface.dismiss())

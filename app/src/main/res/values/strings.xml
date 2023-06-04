@@ -43,9 +43,26 @@
     <string name="stats_users">Users</string>
     <string name="camera_view_auto_crop_text">Auto Crop</string>
     <string name="camera_view_book_label">Book</string>
-    <string name="failed_to_save_book">Failed to add the book.</string>
+    <string name="failed_to_save_book">Failed to save the book.</string>
     <string name="book_pop_up_edit_button_text">Edit</string>
     <string name="book_pop_up_delete_button_text">Delete</string>
     <string name="delete_prompt">"Are you sure you want to delete this Book ?"</string>
     <string name="edit_button_text">Save</string>
+    <string name="failed_algolia_delete">Unable to delete Book from search.</string>
+    <string name="book_delete_success">Book successfully deleted!</string>
+    <string name="book_delete_failed">Unable to delete Book</string>
+    <string name="algolia_application_id">D77D99DE4O</string>
+    <string name="algolia_api_key">453424a3ad3532f4d5c3fb1ad2584695</string>
+    <string name="algolia_index">book_shelf</string>
+    <string name="common_error">Oops something went wrong.</string>
+    <string name="camera_permission_denied">Can\'t capture photo PERMISSION DENIED</string>
+    <string name="no_name_error">Please enter a name.</string>
+    <string name="no_author">Author\'s name can\'t be empty.</string>
+    <string name="no_category">Please enter a category</string>
+    <string name="photo_upload_failed">Failed to upload cover photo</string>
+    <string name="book_added">Added</string>
+    <string name="failed_to_add_book">Failed to add book.</string>
+    <string name="text_copied_from_image">Copied</string>
+    <string name="book_saved">Saved</string>
+    <string name="no_search_result">No Results Found</string>
 </resources>

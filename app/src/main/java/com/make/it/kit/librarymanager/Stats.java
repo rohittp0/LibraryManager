@@ -47,6 +47,7 @@ public class Stats extends Fragment
     private int bookCount = 0;
     private int authorCount = 0;
     private int categoryCount = 0;
+    private int userCount = 0;
 
     public Stats()
     {
@@ -97,8 +98,8 @@ public class Stats extends Fragment
         HorizontalScrollView cards = view.findViewById(R.id.stats_cards_scrollView);
         cards.post(() -> cards.smoothScrollTo(view.findViewById(R.id.book_count).getWidth(), 0));
 
-        initChart(AuthorChart, Authors.get(1) ,"Author Details.");
-        initChart(CategoryChart, Categories.get(1) , "Category Details.");
+        initChart(AuthorChart, Authors.get(1), "Author Details.");
+        initChart(CategoryChart, Categories.get(1), "Category Details.");
 
         if (Authors != null)
             updateChart(AuthorChart, Authors, "Authors");
@@ -108,7 +109,7 @@ public class Stats extends Fragment
         super.onViewCreated(view, savedInstanceState);
     }
 
-    private void initChart(@NonNull BarChart chart, List<String> dataSet , String popUpTitle)
+    private void initChart(@NonNull BarChart chart, List<String> dataSet, String popUpTitle)
     {
         chart.setDrawValueAboveBar(true);
         chart.getDescription().setEnabled(false);
@@ -133,7 +134,7 @@ public class Stats extends Fragment
                 int index = (int) h.getX();
                 final AlertDialog alert = new AlertDialog.Builder(Objects.requireNonNull(getContext()))
                         .create();
-                alert.setMessage(dataSet.get(index) + "  " + (int)h.getY() + " Books");
+                alert.setMessage(dataSet.get(index) + "  " + (int) h.getY() + " Books");
                 alert.setTitle(popUpTitle);
                 alert.show();
             }
@@ -194,15 +195,14 @@ public class Stats extends Fragment
         }
     }
 
-    // --Commented out by Inspection START (8/6/19 10:16 PM):
-    //    void setUserCount(int userCount)
-    //    {
-    //        this.userCount = userCount;
-    //        if (view != null)
-    //        {
-    //            TextView text = view.findViewById(R.id.user_count);
-    //            text.setText(String.format(Locale.US, "%d", userCount));
-    //        }
-    //    }
-    // --Commented out by Inspection STOP (8/6/19 10:16 PM)
+    void setUserCount(int userCount)
+    {
+        this.userCount = userCount;
+        if (view != null)
+        {
+            TextView text = view.findViewById(R.id.user_count);
+            text.setText(String.format(Locale.US, "%d", userCount));
+        }
+    }
+
 }

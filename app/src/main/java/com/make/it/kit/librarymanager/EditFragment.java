@@ -10,14 +10,15 @@ import androidx.annotation.Nullable;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Objects;
 
 public class EditFragment extends Add
 {
-    private DocumentReference bookRef;
     private Book book;
     private EditWindow This;
+    private DocumentReference bookRef;
 
     @NonNull
     static EditFragment newInstance(@NonNull EditWindow This)
@@ -31,13 +32,9 @@ public class EditFragment extends Add
     public void onCreate(@Nullable Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        try
-        {
-            bookRef = db.document(Objects.requireNonNull(Objects.requireNonNull(This.getIntent().getExtras())
-                    .getString(RecyclerViewAdapter.CURRENT_BOOK)));
-        } catch (NullPointerException ignored)
-        {
-        }
+        bookRef = FirebaseFirestore.getInstance().document(
+                String.valueOf(This.getIntent()
+                        .getSerializableExtra(RecyclerViewAdapter.CURRENT_BOOK)));
     }
 
     @Override
@@ -59,17 +56,14 @@ public class EditFragment extends Add
                         view.findViewById(R.id.add_book_price),
                         view.findViewById(R.id.add_book_category)
                 };
-
-        if (bookRef != null) bookRef.get().addOnCompleteListener((snapshotTask) ->
+        bookRef.get().addOnSuccessListener(bookSnapshot ->
         {
-            book = Objects.requireNonNull(snapshotTask.getResult()).toObject(Book.class);
-            if (book == null || !snapshotTask.getResult().exists())
-                throw new NullPointerException("No such book exists.");
+            book = bookSnapshot.toObject(Book.class);
+            assert book != null;
             book.toScreen(textViews, view.findViewById(R.id.add_book_cover_photo),
                     Objects.requireNonNull(getContext()));
-            textViews[2].setText(textViews[2].getText().subSequence(1, textViews[2].getText().length()));
-        }).addOnFailureListener(this);
-
+        })
+                .addOnFailureListener(this);
         MaterialButton submit = view.findViewById(R.id.add_book_submit_button);
         submit.setText(R.string.edit_button_text);
 

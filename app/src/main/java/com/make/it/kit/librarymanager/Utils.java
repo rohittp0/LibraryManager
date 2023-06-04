@@ -1,37 +1,26 @@
 package com.make.it.kit.librarymanager;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
-import android.hardware.Camera;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCharacteristics;
-import android.hardware.camera2.CameraManager;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.util.SparseIntArray;
 import android.view.MotionEvent;
-import android.view.Surface;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 
 import com.github.mikephil.charting.data.BarEntry;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata;
 
 import org.jetbrains.annotations.Contract;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,25 +28,13 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
-import static android.content.Context.CAMERA_SERVICE;
-
-@SuppressWarnings("unused")
 final class Utils
 {
-    static final String API_KEY = "AIzaSyCvmNRcN-WGh9jy6vgHb8XM4s4D2rDdOxs";
     private static final char[] PUNCTUATIONS = {'.', ' ', '-'};
-    private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
-
-    static
-    {
-        ORIENTATIONS.append(Surface.ROTATION_0, 90);
-        ORIENTATIONS.append(Surface.ROTATION_90, 0);
-        ORIENTATIONS.append(Surface.ROTATION_180, 270);
-        ORIENTATIONS.append(Surface.ROTATION_270, 180);
-    }
 
     /**
      * Creates a temporary file and returns it's Uri after deleting it.
@@ -112,28 +89,15 @@ final class Utils
         };
     }
 
-    static void setTexts(@NonNull View header, @NonNull FirebaseAuth auth)
-    {
-        TextView user = header.findViewById(R.id.nav_user_name);
-        TextView email = header.findViewById(R.id.nav_email_id);
-        if (auth.getCurrentUser() != null)
-        {
-            user.setText(auth.getCurrentUser().getDisplayName());
-            if (auth.getCurrentUser().getEmail() != null)
-                email.setText(auth.getCurrentUser().getEmail());
-            else email.setText(auth.getCurrentUser().getPhoneNumber());
-        }
-    }
-
     static boolean isInside(@NonNull MotionEvent event, @NonNull Rect rect)
     {
         return event.getX() >= rect.left && event.getX() <= rect.right && event.getY() >= rect.top
                 && event.getY() <= rect.bottom;
     }
 
-    static void showToast(String message, Context context)
+    static void showToast(int message, Context context)
     {
-        Toast.makeText(context, message, Toast.LENGTH_LONG).show();
+        Toast.makeText(context, context.getString(message), Toast.LENGTH_LONG).show();
     }
 
     static boolean isConnected(Context context)
@@ -142,16 +106,16 @@ final class Utils
         {
             switch (new CheckInternet().execute(context).get())
             {
-                case CheckInternet.INTERNET_ACCESS:
+                case R.integer.internet_access:
                     return true;
-                case CheckInternet.NO_NETWORK_ACCESS:
-                    alert(context.getString(R.string.no_network_message), context);
-                case CheckInternet.NO_INTERNET_ACCESS:
-                    alert(context.getString(R.string.no_internet_message), context);
-                case CheckInternet.UNABLE_TO_CHECK:
-                    alert(context.getString(R.string.error_checking_network), context);
-                case CheckInternet.ERROR:
-                    alert(context.getString(R.string.error_message), context);
+                case R.integer.no_network_acess:
+                    alert(R.string.no_network_message, context);
+                case R.integer.no_internet_access:
+                    alert(R.string.no_internet_message, context);
+                case R.integer.unable_to_check_internet:
+                    alert(R.string.error_checking_network, context);
+                case R.integer.internet_error:
+                    alert(R.string.error_message, context);
             }
         } catch (InterruptedException | ExecutionException e)
         {
@@ -161,29 +125,29 @@ final class Utils
         return false;
     }
 
-    static void alert(CharSequence message, Context context)
+    static void alert(int message, Context context)
     {
         AlertDialog alert = new AlertDialog.Builder(context).create();
         alert.setTitle("Error");
         alert.setIcon(R.drawable.ic_error);
         alert.setButton(AlertDialog.BUTTON_POSITIVE, "Ok",
                 (dialog, which) -> dialog.dismiss());
-        alert.setMessage(message);
+        alert.setMessage(context.getString(message));
         alert.show();
     }
 
-    static List<List> extract(@NonNull Task<QuerySnapshot> task)
+    @NonNull
+    static List<List> extract(@NonNull List<DocumentSnapshot> docs)
     {
         List<BarEntry> entries = new ArrayList<>();
         List<String> labels = new ArrayList<>();
         List<List> data = new ArrayList<>();
-        final DocumentSnapshot[] docs =
-                Objects.requireNonNull(task.getResult()).getDocuments().toArray(new DocumentSnapshot[0]);
-        for (int i = 0; i < docs.length; i++)
+
+        for (int i = 0; i < docs.size(); i++)
         {
             entries.add(new BarEntry((float) i,
-                    Objects.requireNonNull(docs[i].getDouble("Books")).floatValue()));
-            labels.add(docs[i].getString("Name"));
+                    Objects.requireNonNull(docs.get(i).getDouble("Books")).floatValue()));
+            labels.add(docs.get(i).getString("Name"));
         }
         data.add(entries);
         data.add(labels);
@@ -196,74 +160,6 @@ final class Utils
     {
         return id == R.id.nav_home ? "home" : id == R.id.nav_add ? "add" :
                 id == R.id.nav_profile ? "profile" : null;
-    }
-
-    @Nullable
-    static Camera getCameraInstance()
-    {
-        Camera c = null;
-        try
-        {
-            c = Camera.open(); // attempt to get a Camera instance
-        } catch (Exception e)
-        {
-            // Camera is not available (in use or does not exist)
-        }
-        return c; // returns null if camera is unavailable
-    }
-
-    /**
-     * Get the angle by which an image must be rotated given the device's current
-     * orientation.
-     */
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    static int getRotationCompensation(String cameraId, @NonNull Activity activity,
-                                       @NonNull Context context)
-    {
-        // Get the device's current rotation relative to its "native" orientation.
-        // Then, from the ORIENTATIONS table, look up the angle the image must be
-        // rotated to compensate for the device's rotation.
-        int deviceRotation = activity.getWindowManager().getDefaultDisplay().getRotation();
-        int rotationCompensation = ORIENTATIONS.get(deviceRotation);
-
-        // On most devices, the sensor orientation is 90 degrees, but for some
-        // devices it is 270 degrees. For devices with a sensor orientation of
-        // 270, rotate the image an additional 180 ((270 + 270) % 360) degrees.
-        CameraManager cameraManager = (CameraManager) context.getSystemService(CAMERA_SERVICE);
-        int sensorOrientation = 0;
-        try
-        {
-            assert cameraManager != null;
-            sensorOrientation = Objects.requireNonNull(cameraManager
-                    .getCameraCharacteristics(cameraId)
-                    .get(CameraCharacteristics.SENSOR_ORIENTATION));
-        } catch (CameraAccessException | NullPointerException e)
-        {
-            e.printStackTrace(); //TODO add crashlytics
-        }
-        rotationCompensation = (rotationCompensation + sensorOrientation + 270) % 360;
-
-        // Return the corresponding FirebaseVisionImageMetadata rotation value.
-        int result;
-        switch (rotationCompensation)
-        {
-            case 0:
-                result = FirebaseVisionImageMetadata.ROTATION_0;
-                break;
-            case 90:
-                result = FirebaseVisionImageMetadata.ROTATION_90;
-                break;
-            case 180:
-                result = FirebaseVisionImageMetadata.ROTATION_180;
-                break;
-            case 270:
-                result = FirebaseVisionImageMetadata.ROTATION_270;
-                break;
-            default:
-                result = FirebaseVisionImageMetadata.ROTATION_0;
-                System.out.println("Bad rotation value: " + rotationCompensation);
-        }
-        return result;
     }
 
     @NonNull
@@ -280,16 +176,19 @@ final class Utils
                     strings[i + 1] = (strings[i + 1] + "").toUpperCase().charAt(0);
         return new String(strings);
     }
+
+    @NonNull
+    static JSONObject mapToJSON(@NonNull Map map) throws JSONException
+    {
+        JSONObject object = new JSONObject();
+        for (Object key : map.keySet().toArray())
+            object.put((String) key, map.get(key));
+        return object;
+    }
 }
 
 class CheckInternet extends AsyncTask<Context, Void, Integer>
 {
-
-    static final int INTERNET_ACCESS = 0;
-    static final int ERROR = 1;
-    static final int NO_INTERNET_ACCESS = 2;
-    static final int UNABLE_TO_CHECK = 3;
-    static final int NO_NETWORK_ACCESS = 4;
 
     @Override
     protected Integer doInBackground(Context... params)
@@ -310,7 +209,7 @@ class CheckInternet extends AsyncTask<Context, Void, Integer>
         } catch (Exception error)
         {
             error.printStackTrace(); // TODO add crashlytics
-            return UNABLE_TO_CHECK;
+            return R.integer.unable_to_check_internet;
         }
 
 
@@ -319,7 +218,7 @@ class CheckInternet extends AsyncTask<Context, Void, Integer>
             try
             {
                 HttpURLConnection url = (HttpURLConnection)
-                        (new URL("http://clients3.google.com/generate_204")
+                        (new URL("https://clients3.google.com/generate_204")
                                 .openConnection());
                 url.setRequestProperty("User-Agent", "Android");
                 url.setRequestProperty("Connection", "close");
@@ -327,16 +226,16 @@ class CheckInternet extends AsyncTask<Context, Void, Integer>
                 url.connect();
                 if (url.getResponseCode() == 204 &&
                         url.getContentLength() == 0)
-                    return INTERNET_ACCESS;
+                    return R.integer.internet_access;
 
             } catch (IOException e)
             {
                 e.printStackTrace(); // TODO add catalytic
-                return NO_INTERNET_ACCESS;
+                return R.integer.no_internet_access;
             }
         } else
-            return NO_NETWORK_ACCESS;
-        return ERROR;
+            return R.integer.no_network_acess;
+        return R.integer.internet_error;
     }
 
 }

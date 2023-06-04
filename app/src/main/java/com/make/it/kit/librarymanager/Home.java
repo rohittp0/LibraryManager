@@ -1,5 +1,6 @@
 package com.make.it.kit.librarymanager;
 
+import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.TypedValue;
@@ -33,11 +34,10 @@ public class Home extends Fragment implements SwipeRefreshLayout.OnRefreshListen
     private final CollectionReference bookRef = FirebaseFirestore.getInstance()
             .collection("Books");
 
-    private static final float BOOK_SIZE = 130;
-
     private View view;
     private RecyclerView recyclerView;
     private SwipeRefreshLayout swipe;
+    private Context mContext;
 
     private boolean Refresh = true;
     private ListenerRegistration Refresher;
@@ -71,7 +71,8 @@ public class Home extends Fragment implements SwipeRefreshLayout.OnRefreshListen
             {
                 if (recyclerView.getAdapter() == null) swipe.setRefreshing(true);
             });
-            Refresher = bookRef.orderBy("SavedOn", Query.Direction.DESCENDING).limit(20)
+            if(Refresh)
+                Refresher = bookRef.orderBy("SavedOn", Query.Direction.DESCENDING).limit(20)
                     .addSnapshotListener(this);
         }
         return view;
@@ -89,7 +90,7 @@ public class Home extends Fragment implements SwipeRefreshLayout.OnRefreshListen
     }
 
     @Override
-    public void onConfigurationChanged(Configuration newConfig)
+    public void onConfigurationChanged(@NonNull Configuration newConfig)
     {
         super.onConfigurationChanged(newConfig);
         if (recyclerView != null)
@@ -105,9 +106,9 @@ public class Home extends Fragment implements SwipeRefreshLayout.OnRefreshListen
         width -= container.getPaddingEnd();
 
         int cols = width / Math.round(
-                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, BOOK_SIZE
+                TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                        getResources().getInteger(R.integer.book_size)
                         , getResources().getDisplayMetrics()));
-        System.out.println("Number of columns = " + cols);
 
         return cols > 0 ? cols : 1;
     }
@@ -144,6 +145,18 @@ public class Home extends Fragment implements SwipeRefreshLayout.OnRefreshListen
                 });
     }
 
+    void setData(ArrayList<Book> searchResults)
+    {
+        recyclerView.setAdapter(new RecyclerViewAdapter(getContext(), searchResults));
+        if (swipe.isRefreshing()) swipe.setRefreshing(false);
+    }
+
+    void clearData()
+    {
+        recyclerView.setAdapter(new RecyclerViewAdapter(getContext(), new ArrayList<>()));
+        swipe.setRefreshing(true);
+    }
+
     private void firebaseError(@Nullable Exception error)
     {
         if (error != null) error.printStackTrace(); //TODO add crashlytics
@@ -155,7 +168,7 @@ public class Home extends Fragment implements SwipeRefreshLayout.OnRefreshListen
         if (e != null || queryDocumentSnapshots == null)
         {
             firebaseError(e);
-            Utils.alert("Unable to get Books", getContext());
+            Utils.alert(R.string.common_error, getContext());
         } else
         {
             final List<DocumentSnapshot> documents = queryDocumentSnapshots.getDocuments();

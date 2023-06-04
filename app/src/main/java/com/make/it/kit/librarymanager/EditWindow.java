@@ -8,12 +8,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.algolia.search.saas.Client;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+
+import org.json.JSONException;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -23,6 +26,8 @@ import java.util.Objects;
 public class EditWindow extends AppCompatActivity implements OnCompleteListener<Void>, OnFailureListener
 {
     private Add add;
+    private boolean firestore = false;
+    private boolean algolia = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -78,6 +83,26 @@ public class EditWindow extends AppCompatActivity implements OnCompleteListener<
                     });
         } else bookRef.update(map).addOnFailureListener(this)
                 .addOnCompleteListener(this);
+        try
+        {
+            new Client(getString(R.string.algolia_application_id), MainActivity.ALGOLIA_API_KEY)
+                    .getIndex(getString(R.string.algolia_index))
+                    .partialUpdateObjectAsync(Utils.mapToJSON(map), bookRef.toString()
+                            , (jsonObject, algoliaException) ->
+                            {
+                                if (algoliaException != null)
+                                    onFailure(algoliaException);
+                                else if (firestore)
+                                {
+                                    add.toggleAddingDialog(true);
+                                    Utils.showToast(R.string.book_saved, this);
+                                    finish();
+                                } else algolia = true;
+                            });
+        } catch (JSONException e)
+        {
+            onFailure(e);
+        }
     }
 
 
@@ -91,16 +116,19 @@ public class EditWindow extends AppCompatActivity implements OnCompleteListener<
     @Override
     public void onComplete(@NonNull Task<Void> task)
     {
-        add.toggleAddingDialog(true);
-        Utils.showToast("Saved.", this);
-        finish();
+        if (algolia)
+        {
+            add.toggleAddingDialog(true);
+            Utils.showToast(R.string.book_saved, this);
+            finish();
+        } else firestore = true;
     }
 
     @Override
     public void onFailure(@Nullable Exception e)
     {
         add.toggleAddingDialog(true);
-        Utils.alert("Failed to save changes", this);
+        Utils.alert(R.string.failed_to_save_book, this);
         if (e != null) e.printStackTrace(); //TODO add crashlytics
     }
 }

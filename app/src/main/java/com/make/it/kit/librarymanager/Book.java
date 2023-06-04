@@ -11,10 +11,15 @@ import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentReference;
 import com.squareup.picasso.Picasso;
 
+import org.jetbrains.annotations.Contract;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.Serializable;
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @SuppressWarnings("unused")
 class Book implements Serializable
@@ -48,6 +53,19 @@ class Book implements Serializable
         setPhoto(Photo);
         setPhotoRef(PhotoRef);
         setPrice(Price);
+        if (Utils.checkNull(Photo) || Utils.checkNull(PhotoRef))
+            PhotoID = images[(int) Math.round(Math.random() * 100) % 3];
+    }
+
+    Book(@NonNull JSONObject book) throws JSONException
+    {
+        setName(book.getString("Name"));
+        setAuthor(book.getString("Author"));
+        setCategory(book.getString("Category"));
+        if (book.has("Photo"))setPhoto(book.getString("Photo"));
+        if (book.has("PhotoRef"))setPhotoRef(book.getString("PhotoRef"));
+        setPrice((float) book.getDouble("Price"));
+        if (book.has("SelfRef"))setSelfRef((DocumentReference) book.get("SelfRef"));
         if (Utils.checkNull(Photo) || Utils.checkNull(PhotoRef))
             PhotoID = images[(int) Math.round(Math.random() * 100) % 3];
     }
@@ -168,7 +186,23 @@ class Book implements Serializable
         map.put("SavedOn", getSavedOn());
         map.put("Price", getPrice());
         map.put("PhotoID", getPhotoID());
+        map.put("SelfRef", getSelfRef());
         return map;
+    }
+
+    JSONObject toJSONObject() throws JSONException
+    {
+        return new JSONObject()
+                .put("Name", Utils.format(getName()))
+                .put("Author", Utils.format(getAuthor()))
+                .put("Category", Utils.format(getCategory()))
+                .put("Photo", getPhoto())
+                .put("PhotoRef", getPhotoRef())
+                .put("SavedOn", getSavedOn())
+                .put("Price", getPrice())
+                .put("PhotoID", getPhotoID())
+                .put("SelfRef", getSelfRef())
+                .put("objectID", getSelfRef().getPath());
     }
 
     DocumentReference getSelfRef()
@@ -179,5 +213,19 @@ class Book implements Serializable
     void setSelfRef(DocumentReference selfRef)
     {
         SelfRef = selfRef;
+    }
+
+    @Contract(value = "null -> false", pure = true)
+    @Override
+    public boolean equals(Object object)
+    {
+        if (!(object instanceof Book)) return false;
+        Book book = (Book) object;
+        return (this.getSelfRef() != null && this.getSelfRef() == book.getSelfRef()) ||
+                ((this.getSelfRef() == null || book.getSelfRef() == null) &&
+                        ((this.getPhotoRef() != null &&
+                                Objects.equals(this.getPhotoRef(), book.getPhotoRef())) ||
+                                this.getPhoto() != null &&
+                                        Objects.equals(this.getPhoto(), book.getPhoto())));
     }
 }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="rc_sign_in">9441</integer>
+    <integer name="remote_config_refresh_interval">43200</integer>
+    <integer name="capture_image">9442</integer>
+    <integer name="request_permission">9443</integer>
+    <integer name="book_size">130</integer>
+    <integer name="internet_access">9444</integer>
+    <integer name="internet_error">9445</integer>
+    <integer name="no_internet_access">9446</integer>
+    <integer name="unable_to_check_internet">9447</integer>
+    <integer name="no_network_acess">9448</integer>
+</resources>
